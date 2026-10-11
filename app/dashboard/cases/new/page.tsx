@@ -1,5 +1,7 @@
 "use client"
 
+import pb from "@/lib/pb"
+
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useProfiles } from "@/hooks/useProfiles"
@@ -25,7 +27,7 @@ import {
 } from "@/components/ui/select"
 import { useLang } from "@/lib/lang-context"
 import { t } from "@/lib/i18n"
-import { PORTALS } from "@/lib/portals"
+import { usePortals } from "@/hooks/usePortals"
 import { trainingProgramsCollection } from "@/lib/pb-training"
 import type { TrainingProgram } from "@/types/training"
 import { type PortalServiceValue } from "@/components/register/PortalServiceSelector"
@@ -57,6 +59,7 @@ export default function NewProfilePage() {
   const router = useRouter()
   const { currentUser } = useAuth()
   const { lang } = useLang()
+  const { portals: PORTALS } = usePortals()
   const { addProfile } = useProfiles()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -207,7 +210,7 @@ export default function NewProfilePage() {
 
       fetch("/api/telegram-notify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${pb.authStore.token}` },
         body: JSON.stringify({
           text: [
             "*New Case Needs Payment Amount*",

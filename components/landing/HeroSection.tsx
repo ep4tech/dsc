@@ -1,117 +1,300 @@
 "use client"
 
-import Link from "next/link"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { t } from "@/lib/i18n"
+import { useEffect, useState } from "react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Play,
+  UsersRound,
+} from "lucide-react"
 import { useLang } from "@/lib/lang-context"
 import { SITE_CONTENT } from "@/lib/site-content"
+import { FOUNDER } from "@/components/team/TeamData"
+import { specializationLabel } from "@/components/team/team-labels"
+import type { TeamExpert } from "@/types/team"
+import styles from "./home.module.css"
 
-export function HeroSection() {
+function ExpertPortrait({ expert }: { expert: TeamExpert }) {
+  const [failed, setFailed] = useState(false)
+  const initials = expert.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+  const hue =
+    Array.from(expert.id).reduce((sum, char) => sum + char.charCodeAt(0), 0) %
+    360
+  return (
+    <div
+      className={styles.expertPortrait}
+      style={{ backgroundColor: `hsl(${hue} 24% 27%)` }}
+    >
+      {expert.photoUrl && !failed ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={expert.photoUrl}
+          alt={expert.name}
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <div className={styles.initials} aria-label={expert.name}>
+          <span>{initials || "DSC"}</span>
+          <span>{expert.name}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function HeroSection({ experts }: { experts: TeamExpert[] }) {
   const { lang } = useLang()
+  const ar = lang === "ar"
+  const [index, setIndex] = useState(0)
+  const [cycle, setCycle] = useState(0)
+  const [playPreference, setPlayPreference] = useState<boolean | null>(null)
+  const [reducedMotion, setReducedMotion] = useState(true)
+  const [visible, setVisible] = useState(true)
+  const activeIndex = experts.length ? index % experts.length : 0
+  const activeExpert = experts[activeIndex]
+  const expert = activeExpert
+    ? {
+        ...activeExpert,
+        name:
+          (ar ? activeExpert.publicNameAr : activeExpert.publicNameEn) ||
+          activeExpert.name,
+      }
+    : undefined
+  const qualification = expert
+    ? (ar ? expert.publicQualificationAr : expert.publicQualificationEn) ||
+      expert.fieldOfStudy ||
+      ""
+    : ""
+  const specialty = expert
+    ? (ar ? expert.publicSpecialtyAr : expert.publicSpecialtyEn) ||
+      expert.roles.map((role) => specializationLabel(role, lang)).join(" · ")
+    : ""
+  const wantsToPlay = playPreference ?? !reducedMotion
+  const rotating = experts.length > 1 && wantsToPlay && visible
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const syncMotion = () => setReducedMotion(media.matches || document.documentElement.classList.contains("reading-motion"))
+    const syncVisibility = () => setVisible(!document.hidden)
+    syncMotion()
+    syncVisibility()
+    media.addEventListener("change", syncMotion)
+    window.addEventListener("dsc-readability-changed", syncMotion)
+    document.addEventListener("visibilitychange", syncVisibility)
+    return () => {
+      media.removeEventListener("change", syncMotion)
+      window.removeEventListener("dsc-readability-changed", syncMotion)
+      document.removeEventListener("visibilitychange", syncVisibility)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!rotating) return
+    const timer = window.setTimeout(() => {
+      setIndex((value) => (value + 1) % experts.length)
+      setCycle((value) => value + 1)
+    }, 4000)
+    return () => window.clearTimeout(timer)
+  }, [rotating, experts.length, cycle])
+
+  function move(direction: number) {
+    setIndex((value) => (value + direction + experts.length) % experts.length)
+    setCycle((value) => value + 1)
+  }
 
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      {/* Dark base */}
-      <div className="absolute inset-0 z-0 bg-[#0a2540]" />
-
-      {/* Subtle color overlay */}
-      <div
-        className="animate-hero-gradient absolute inset-0 z-[1]"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(10,61,98,0.55), rgba(26,82,118,0.4), rgba(46,134,193,0.25), rgba(60,141,188,0.2), rgba(201,162,39,0.12))",
-          backgroundSize: "200% 200%",
-        }}
-      />
-
-      {/* Subtle dot pattern */}
-      <div
-        className="absolute inset-0 z-[2] opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      {/* Floating decorative shapes */}
-      <div className="pointer-events-none absolute inset-0 z-[3] overflow-hidden">
-        <div className="animate-float absolute left-[10%] top-[20%] h-16 w-16 rounded-full border border-white/10 bg-white/5" />
-        <div className="animate-float delay-300 absolute right-[15%] top-[30%] h-10 w-10 rounded-full border border-white/10 bg-white/5" />
-        <div className="animate-float delay-500 absolute bottom-[25%] left-[20%] h-12 w-12 rounded-full border border-white/10 bg-white/5" />
-        <div className="animate-float delay-700 absolute bottom-[35%] right-[10%] h-8 w-8 rounded-full border border-white/10 bg-white/5" />
-      </div>
-
-      {/* Main content */}
-      <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 text-center">
-        {/* Logo with animated rings */}
-        <div className="animate-fade-in-up mb-10">
-          <div className="relative flex h-[180px] w-[180px] items-center justify-center md:h-[220px] md:w-[220px]">
-            {/* Outer glow rings */}
-            <div className="animate-pulse-ring absolute left-1/2 top-1/2 h-[180px] w-[180px] rounded-full border border-white/15 md:h-[220px] md:w-[220px]" />
-            <div className="animate-pulse-ring-delayed absolute left-1/2 top-1/2 h-[180px] w-[180px] rounded-full border border-white/10 md:h-[220px] md:w-[220px]" />
-
-            {/* Orbit particles */}
-            <div className="animate-orbit-1 absolute left-1/2 top-1/2 -ml-2 -mt-2">
-              <div className="h-4 w-4 rounded-full bg-[#438b70] shadow-lg shadow-[#438b70]/50" />
+    <section className={styles.hero} dir={ar ? "rtl" : "ltr"}>
+      <div className={styles.heroInner}>
+        <div className={styles.introduction}>
+          <div className={styles.brandLine}>
+            <div className={styles.orbitLogo}>
+              <Image
+                src="/logo.svg"
+                alt="DSC"
+                width={90}
+                height={90}
+                priority
+              />
+              {[0, 1, 2, 3].map((dot) => (
+                <span
+                  key={dot}
+                  className={styles.orbitDot}
+                  aria-hidden="true"
+                />
+              ))}
             </div>
-            <div className="animate-orbit-2 absolute left-1/2 top-1/2 -ml-1.5 -mt-1.5">
-              <div className="h-3 w-3 rounded-full bg-[#e6c200] shadow-lg shadow-[#e6c200]/50" />
+            <span>
+              {ar
+                ? "معرفة متخصصة. أثر يدوم."
+                : "Expert knowledge. Lasting impact."}
+            </span>
+          </div>
+          <div className={styles.headingCopy}>
+            <h1>
+              {ar ? (
+                SITE_CONTENT.hero.headline.ar
+              ) : (
+                <>
+                  Development Secrets{" "}
+                  <span>
+                    Consultancy<span className={styles.acronym}> (DSC)</span>
+                  </span>
+                </>
+              )}
+            </h1>
+            <p>{SITE_CONTENT.hero.subheadline[lang]}</p>
+          </div>
+          <article className={styles.founder}>
+            <Image
+              className={styles.founderPortrait}
+              src={FOUNDER.photo}
+              alt={FOUNDER.name[lang]}
+              width={116}
+              height={145}
+              priority
+            />
+            <div className={styles.founderCopy}>
+              <p className={styles.eyebrow}>{FOUNDER.role[lang]}</p>
+              <h2>{FOUNDER.name[lang]}</h2>
+              <p className={styles.biography}>
+                {ar
+                  ? "خبرة أكاديمية ومهنية في التربية الخاصة والتقييم النفسي والتربوي والتدخل القائم على الأدلة."
+                  : "Academic and professional expertise in special education, psychological and educational assessment, and evidence-based intervention."}
+              </p>
             </div>
-            <div className="animate-orbit-3 absolute left-1/2 top-1/2 -ml-1.5 -mt-1.5">
-              <div className="h-3 w-3 rounded-full bg-white shadow-lg shadow-white/30" />
+          </article>
+        </div>
+        <section
+          className={styles.team}
+          aria-roledescription={ar ? "عرض شرائح" : "carousel"}
+          aria-label={ar ? "فريقنا" : "Our Team"}
+        >
+          <div className={styles.teamHeading}>
+            <div>
+              <h2>{ar ? "تعرف على خبرائنا" : "Meet our experts"}</h2>
             </div>
-            <div className="animate-orbit-4 absolute left-1/2 top-1/2 -ml-2 -mt-2">
-              <div className="h-4 w-4 rounded-full bg-[#456f9f] shadow-lg shadow-[#456f9f]/50" />
-            </div>
-
-            {/* Logo container */}
-            <div className="relative z-10 flex h-[150px] w-[150px] items-center justify-center rounded-full border-2 border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm md:h-[180px] md:w-[180px]">
-              <div className="flex h-[120px] w-[120px] items-center justify-center rounded-full border border-white/10 bg-white/5 md:h-[150px] md:w-[150px]">
-                <Image
-                  src="/logo.svg"
-                  alt="DSC Logo"
-                  width={90}
-                  height={90}
-                  className="object-contain md:h-[100px] md:w-[100px]"
-                  priority
+            <UsersRound size={25} aria-hidden="true" />
+          </div>
+          <div
+            className={styles.slide}
+            aria-live={rotating ? "off" : "polite"}
+            aria-atomic="true"
+          >
+            {expert ? (
+              <article
+                key={expert.id}
+                className={styles.expertCard}
+                aria-roledescription={ar ? "شريحة" : "slide"}
+                aria-label={`${activeIndex + 1} / ${experts.length}`}
+              >
+                <ExpertPortrait expert={expert} />
+                <div className={styles.expertCopy}>
+                  <span className={styles.expertTag}>
+                    {ar ? "فريق DSC" : "DSC EXPERT"}
+                  </span>
+                  <h3>{expert.name}</h3>
+                  {qualification && (
+                    <p className={styles.qualification}>{qualification}</p>
+                  )}
+                  {specialty && (
+                    <p className={styles.shortBiography}>{specialty}</p>
+                  )}
+                  {(ar ? expert.shortBioAr : expert.shortBioEn) && (
+                    <p className={styles.shortBiography}>
+                      {ar ? expert.shortBioAr : expert.shortBioEn}
+                    </p>
+                  )}
+                </div>
+              </article>
+            ) : (
+              <div className={styles.empty}>
+                <UsersRound size={52} aria-hidden="true" />
+                <h3>
+                  {ar
+                    ? "معاً، نحو إمكانات أكبر"
+                    : "Together, towards greater potential"}
+                </h3>
+                <p>
+                  {ar
+                    ? "فريق الخبراء قيد الاستكمال. يرجى العودة لاحقاً."
+                    : "Our team of experts is being finalised. Please check back soon."}
+                </p>
+              </div>
+            )}
+          </div>
+          {experts.length > 1 && (
+            <div className={styles.carouselFooter}>
+              <div className={styles.carouselControls}>
+                <button
+                  className={styles.arrowControl}
+                  onClick={() => move(-1)}
+                  aria-label={ar ? "الخبير السابق" : "Previous expert"}
+                >
+                  {ar ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                </button>
+                <span className={styles.counter} dir="ltr">
+                  <strong>{String(activeIndex + 1).padStart(2, "0")}</strong> /{" "}
+                  {String(experts.length).padStart(2, "0")}
+                </span>
+                <button
+                  className={styles.arrowControl}
+                  onClick={() => move(1)}
+                  aria-label={ar ? "الخبير التالي" : "Next expert"}
+                >
+                  {ar ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                </button>
+                <button
+                  className={styles.playControl}
+                  onClick={() => {
+                    setPlayPreference(!wantsToPlay)
+                    setCycle((value) => value + 1)
+                  }}
+                  aria-label={
+                    wantsToPlay
+                      ? ar
+                        ? "إيقاف العرض التلقائي"
+                        : "Pause automatic rotation"
+                      : ar
+                        ? "تشغيل العرض التلقائي"
+                        : "Resume automatic rotation"
+                  }
+                >
+                  {wantsToPlay ? <Pause size={14} /> : <Play size={14} />}{" "}
+                  {wantsToPlay
+                    ? ar
+                      ? "إيقاف"
+                      : "Pause"
+                    : ar
+                      ? "تشغيل"
+                      : "Play"}
+                </button>
+                <span className={styles.playStatus}>
+                  {rotating
+                    ? ar
+                      ? "عرض تلقائي"
+                      : "Playing"
+                    : ar
+                      ? "متوقف"
+                      : "Paused"}
+                </span>
+              </div>
+              <div className={styles.progressTrack} aria-hidden="true">
+                <span
+                  key={`${cycle}-${rotating}`}
+                  className={rotating ? styles.progressPlaying : undefined}
                 />
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Headline */}
-        <h1 className="animate-fade-in-up delay-200 text-3xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-          Development Secrets Consultancy (DSC)
-        </h1>
-
-        {/* Subheadline */}
-        <p className="animate-fade-in-up delay-400 mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg lg:text-xl">
-          From Comprehensive Scientific Diagnosis to Innovation and  Global Leadership in the Age of Artificial Intelligence
-        </p>
-
-        {/* CTA */}
-        {/* <div className="animate-fade-in-up delay-600 mt-10">
-          <Link href="/register">
-            <Button
-              size="lg"
-              className="group relative overflow-hidden rounded-full px-10 py-6 text-base font-semibold shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-              style={{ backgroundColor: "var(--dsc-gold)", color: "#fff" }}
-            >
-              <span className="relative z-10">
-                {t(SITE_CONTENT.hero.cta, lang)}
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-[#e6c200] to-[#c9a227] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            </Button>
-          </Link> 
-        </div> */}
-
-      </div> 
-
-      {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 z-[4] h-32 w-full bg-gradient-to-t from-white to-transparent" />
+          )}
+        </section>
+      </div>
     </section>
   )
 }

@@ -6,8 +6,8 @@ import { localizedField, t } from "@/lib/i18n"
 import type { InfoPage } from "@/types/cms"
 import type { Lang } from "@/types/form"
 import "suneditor/css/contents"
-import { getPortalById } from "@/lib/portals"
-import { Button } from "@/components/ui/button"
+import { getPortalById } from "@/lib/portal-data"
+import { PortalJourneyButton } from "@/components/portal/PortalJourneyButton"
 import { CmsContent } from "@/components/cms/CmsContent"
 
 interface InfoPageProps {
@@ -22,7 +22,7 @@ export default async function InfoPage({ params }: InfoPageProps) {
   try {
     record = await pb
       .collection("info_pages")
-      .getFirstListItem(`slug = "${id}"`)
+      .getFirstListItem(pb.filter("slug = {:value0}", { value0: id }))
   } catch {
     // Record not found
   }
@@ -30,7 +30,7 @@ export default async function InfoPage({ params }: InfoPageProps) {
   const page = record as InfoPage | null
   const isPublished = !!page?.is_published
   const portalId = page?.portal_name
-  const infoPortal = portalId ? getPortalById(portalId) : undefined
+  const infoPortal = portalId ? await getPortalById(portalId) : undefined
   const backHref = portalId ? `/portal/${portalId}` : "/"
   const title = page ? localizedField(page, lang, "title") : ""
   const displayTitle = title || id.replace(/-/g, " ")
@@ -59,22 +59,17 @@ export default async function InfoPage({ params }: InfoPageProps) {
           />
         )}
         <h1 className="mb-8 text-3xl font-bold capitalize">{displayTitle}</h1>
-        <CmsContent
-          html={localizedField(page, lang, "content")}
-          lang={lang}
-        />
+        <CmsContent html={localizedField(page, lang, "content")} lang={lang} />
 
         <div className="tet">
           {infoPortal && (
-            <a href={infoPortal.ctaHref}>
-              <Button
-                size="lg"
-                className="px-4 py-3 text-xs font-semibold shadow-lg lg:px-8 lg:py-6 lg:text-base"
-                style={{ backgroundColor: infoPortal.accent, color: "#fff" }}
-              >
-                {t(infoPortal.ctaLabel, lang)}
-              </Button>
-            </a>
+            <PortalJourneyButton
+              portalId={infoPortal.id}
+              registrationType={infoPortal.registrationType}
+              label={infoPortal.ctaLabel}
+              className="px-4 py-3 text-xs font-semibold shadow-lg lg:px-8 lg:py-6 lg:text-base"
+              style={{ backgroundColor: infoPortal.accent, color: "#fff" }}
+            />
           )}
         </div>
       </div>

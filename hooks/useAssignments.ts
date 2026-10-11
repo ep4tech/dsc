@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { caseToolsCollection, toolTypesCollection } from "@/lib/pb-collections"
+import { caseToolsCollection } from "@/lib/pb-collections"
 import type { CaseTool } from "@/types/assignment"
 import type { ToolConfig } from "@/types/tool"
 import { toast } from "sonner"
@@ -10,8 +10,11 @@ import { getErrorMessage } from "@/lib/pb"
 export function useAssignments(caseId?: string) {
   const [assignments, setAssignments] = useState<CaseTool[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
 
   const fetchAssignments = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError("")
     try {
       let data: CaseTool[]
       if (caseId) {
@@ -22,6 +25,7 @@ export function useAssignments(caseId?: string) {
       setAssignments(data)
     } catch (error) {
       console.error("Failed to fetch assignments:", error)
+      setLoadError(getErrorMessage(error))
       toast.error(getErrorMessage(error))
     } finally {
       setIsLoading(false)
@@ -29,6 +33,8 @@ export function useAssignments(caseId?: string) {
   }, [caseId])
 
   useEffect(() => {
+    // Fetch external records when the selected scope changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAssignments()
   }, [fetchAssignments])
 
@@ -118,6 +124,7 @@ export function useAssignments(caseId?: string) {
   return {
     assignments,
     isLoading,
+    loadError,
     assignTool,
     updateAssignment,
     updateAssignmentWithFiles,

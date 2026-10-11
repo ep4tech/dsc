@@ -1,10 +1,14 @@
 "use client"
 
+
+import { boundedFullList } from "@/lib/bounded-records"
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { getPortalById } from "@/lib/portals"
+import { PageLoader } from "@/components/ui/page-loader"
+import { DataError } from "@/components/ui/data-error"
+import { usePortals } from "@/hooks/usePortals"
 import { infoPagesCollection } from "@/lib/pb-collections"
 import pb, { getErrorMessage } from "@/lib/pb"
 import { Card } from "@/components/ui/card"
@@ -34,6 +38,8 @@ interface InfoPageRecord {
 
 export default function CmsPortalServicesPage() {
   const { lang } = useLang()
+  const { portals: PORTALS, isLoading: portalsLoading, error: portalsError, reload: reloadPortals } = usePortals()
+  const getPortalById = (id: string) => PORTALS.find((portal) => portal.id === id)
   const BackIcon = lang === "ar" ? ArrowRight : ArrowLeft
   const params = useParams()
   const router = useRouter()
@@ -47,8 +53,8 @@ export default function CmsPortalServicesPage() {
   const [savingOrder, setSavingOrder] = useState(false)
 
   const loadPages = useCallback(async () => {
-    const data = await pb.collection("info_pages").getFullList({
-      filter: `portal_name = "${portalId}"`,
+    const data = await boundedFullList(pb.collection("info_pages"), {
+      filter: pb.filter("portal_name = {:value0}", { value0: portalId }),
       sort: "order",
     })
     setPages(data as unknown as InfoPageRecord[])
@@ -56,7 +62,8 @@ export default function CmsPortalServicesPage() {
 
   useEffect(() => {
     if (!portal) return
-    loadPages().finally(() => setLoading(false))
+    const timer = window.setTimeout(() => { void loadPages().finally(() => setLoading(false)) }, 0)
+    return () => window.clearTimeout(timer)
   }, [portal, loadPages])
 
   const handleNewPage = async () => {
@@ -122,6 +129,8 @@ export default function CmsPortalServicesPage() {
     }
   }, [lang])
 
+  if (portalsLoading) return <PageLoader />
+  if (portalsError) return <DataError message={lang === "ar" ? "تعذر تحميل البوابات." : "Unable to load portals."} onRetry={() => void reloadPortals()} />
   if (!portal) {
     return (
       <div className="space-y-4">

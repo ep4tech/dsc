@@ -9,8 +9,11 @@ import { getErrorMessage } from "@/lib/pb"
 export function useAllocations(caseId?: string) {
   const [allocations, setAllocations] = useState<CaseExpert[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
 
   const fetchAllocations = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError("")
     try {
       let data: CaseExpert[]
       if (caseId) {
@@ -21,6 +24,7 @@ export function useAllocations(caseId?: string) {
       setAllocations(data)
     } catch (error) {
       console.error("Failed to fetch allocations:", error)
+      setLoadError(getErrorMessage(error))
       toast.error(getErrorMessage(error))
     } finally {
       setIsLoading(false)
@@ -28,6 +32,8 @@ export function useAllocations(caseId?: string) {
   }, [caseId])
 
   useEffect(() => {
+    // Fetch external records when the selected scope changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAllocations()
   }, [fetchAllocations])
 
@@ -78,6 +84,7 @@ export function useAllocations(caseId?: string) {
   return {
     allocations,
     isLoading,
+    loadError,
     addAllocation,
     updateAllocation,
     removeAllocation,

@@ -6,7 +6,7 @@ import "react-datepicker/dist/react-datepicker.css"
 import { AppShell } from "@/components/AppShell"
 import { cn } from "@/lib/utils"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],

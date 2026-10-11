@@ -1,0 +1,421 @@
+{
+  "generated": "2026-10-10T21:49:33.957442+00:00",
+  "project": "D:\\SysDir\\MyDocument\\ChatGPT\\DSC\\dsc",
+  "findings": [
+    {
+      "position": "app/api/contact/route.ts:13",
+      "rule": "SEC005",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Messaging route has no visible authentication check",
+      "details": "This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients."
+    },
+    {
+      "position": "app/api/contact/route.ts:13",
+      "rule": "SEC006",
+      "category": "security",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "No visible messaging abuse protection",
+      "details": "Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse."
+    },
+    {
+      "position": "app/api/expert-application/route.ts:12",
+      "rule": "SEC005",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Messaging route has no visible authentication check",
+      "details": "This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients."
+    },
+    {
+      "position": "app/api/expert-application/route.ts:12",
+      "rule": "SEC006",
+      "category": "security",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "No visible messaging abuse protection",
+      "details": "Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse."
+    },
+    {
+      "position": "app/api/send-email/route.ts:12",
+      "rule": "SEC005",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Messaging route has no visible authentication check",
+      "details": "This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients."
+    },
+    {
+      "position": "app/api/send-email/route.ts:12",
+      "rule": "SEC006",
+      "category": "security",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "No visible messaging abuse protection",
+      "details": "Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse."
+    },
+    {
+      "position": "app/api/send-message/route.ts:11",
+      "rule": "SEC005",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Messaging route has no visible authentication check",
+      "details": "This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients."
+    },
+    {
+      "position": "app/api/send-message/route.ts:11",
+      "rule": "SEC006",
+      "category": "security",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "No visible messaging abuse protection",
+      "details": "Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse."
+    },
+    {
+      "position": "app/api/telegram-notify/route.ts:9",
+      "rule": "SEC005",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Messaging route has no visible authentication check",
+      "details": "This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients."
+    },
+    {
+      "position": "app/api/telegram-notify/route.ts:9",
+      "rule": "SEC006",
+      "category": "security",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "No visible messaging abuse protection",
+      "details": "Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse."
+    },
+    {
+      "position": "app/dashboard/admin/allocations/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "1024 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/admin/assignments/[id]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "670 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/admin/cases/[id]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "1257 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/admin/training/[id]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "1219 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/admin/users/[id]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "843 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/cases/[id]/tasks/[toolId]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/individual/cases/[id]/tasks/[toolId]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/institution/projects/[id]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "689 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/institution/projects/[id]/tasks/[toolId]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/dashboard/parent/cases/[id]/tasks/[toolId]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/programmes/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "729 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "app/programmes/training_programmes/[id]/page.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "763 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "components/cms/CmsContent.tsx:38",
+      "rule": "SEC001",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "HTML injection sink",
+      "details": "Trace the HTML to its source and verify robust sanitization before rendering. This sink alone does not prove XSS."
+    },
+    {
+      "position": "components/dashboard/ExpertApproval.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "687 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "components/dashboard/UserManagement.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "1012 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "components/expert/ExpertProfileEditor.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "1048 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "components/register/ExpertApplicationForm.tsx:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "1134 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "lib/pb-collections.ts:1",
+      "rule": "DESIGN002",
+      "category": "design",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Large module",
+      "details": "1045 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself."
+    },
+    {
+      "position": "local-backend/1780000000_local_bootstrap.js:22",
+      "rule": "SEC004",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Public PocketBase rule in migration",
+      "details": "An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced."
+    },
+    {
+      "position": "local-backend/1780000000_local_bootstrap.js:23",
+      "rule": "SEC004",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Public PocketBase rule in migration",
+      "details": "An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced."
+    },
+    {
+      "position": "local-backend/1780000000_local_bootstrap.js:25",
+      "rule": "SEC004",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Public PocketBase rule in migration",
+      "details": "An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced."
+    },
+    {
+      "position": "local-backend/1791600000_local_events.js:10",
+      "rule": "SEC004",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Public PocketBase rule in migration",
+      "details": "An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced."
+    },
+    {
+      "position": "local-backend/seed-demo.mjs:5",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "local-backend/seed-demo.mjs:10",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "pb_migrations/1791500000_expert_management.js:9",
+      "rule": "SEC004",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Public PocketBase rule in migration",
+      "details": "An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced."
+    },
+    {
+      "position": "pb_migrations/1791500000_expert_management.js:10",
+      "rule": "SEC004",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Public PocketBase rule in migration",
+      "details": "An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced."
+    },
+    {
+      "position": "pb_migrations/1791800000_expert_cases_access.js:11",
+      "rule": "SEC004",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Public PocketBase rule in migration",
+      "details": "An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced."
+    },
+    {
+      "position": "tests/expert-biographies.mjs:5",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "tests/local-workflows.mjs:11",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "tests/local-workflows.mjs:32",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "tests/local-workflows.mjs:33",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "tests/local-workflows.mjs:34",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "tests/local-workflows.mjs:35",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "tests/local-workflows.mjs:40",
+      "rule": "DATA002",
+      "category": "data handling",
+      "severity": "MEDIUM",
+      "confidence": "review required",
+      "issue": "Unbounded collection retrieval",
+      "details": "Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets."
+    },
+    {
+      "position": "tests/portal-management.test.cjs:11",
+      "rule": "SEC002",
+      "category": "security",
+      "severity": "HIGH",
+      "confidence": "review required",
+      "issue": "Dynamic code execution",
+      "details": "Verify no untrusted content reaches this execution point; prefer a restricted parser."
+    }
+  ],
+  "files_scanned": 318,
+  "scan_errors": [],
+  "checks": [
+    {
+      "name": "Local diagnostics",
+      "status": "SKIPPED",
+      "output": "--static-only selected",
+      "exit_code": null
+    }
+  ]
+}

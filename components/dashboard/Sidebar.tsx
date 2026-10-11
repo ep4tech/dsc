@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
+import { useUnreadMessages } from "@/hooks/useUnreadMessages"
 import { useAuth } from "@/hooks/useAuth"
 import { useLang } from "@/lib/lang-context"
 import type { Lang } from "@/types/form"
@@ -23,7 +24,6 @@ import {
   UserCheck,
   BadgeCheck,
   Wallet,
-  Building2,
   Briefcase,
   FileText,
   Calendar,
@@ -31,8 +31,8 @@ import {
   UserCircle,
   StickyNote,
   Baby,
-  Heart,
-  ClipboardCheck,
+  Menu,
+  X,
 } from "lucide-react"
 
 type NavItem = {
@@ -40,9 +40,12 @@ type NavItem = {
   href: string
   icon: typeof LayoutDashboard
   superAdminOnly?: boolean
+  unread?: number
 }
 
 const adminNavigation: NavItem[] = [
+  { name: { en: "Messages", ar: "الرسائل" }, href: "/dashboard/messages", icon: MessageSquare },
+  { name: { en: "Database backups", ar: "النسخ الاحتياطية" }, href: "/dashboard/admin/backups", icon: FolderKanban },
   {
     name: { en: "Cases", ar: "الحالات" },
     href: "/dashboard/admin/cases",
@@ -64,11 +67,6 @@ const adminNavigation: NavItem[] = [
     icon: UserCheck,
   },
   {
-    name: { en: "Expert Approval", ar: "اعتماد الخبراء" },
-    href: "/dashboard/admin/expert-approval",
-    icon: BadgeCheck,
-  },
-  {
     name: { en: "Training", ar: "التدريب" },
     href: "/dashboard/admin/training",
     icon: GraduationCap,
@@ -87,6 +85,11 @@ const adminNavigation: NavItem[] = [
     name: { en: "Users", ar: "المستخدمون" },
     href: "/dashboard/admin/users",
     icon: Users,
+  },
+  {
+    name: { en: "Experts", ar: "الخبراء" },
+    href: "/dashboard/admin/experts",
+    icon: BadgeCheck,
   },
   {
     name: { en: "Settings", ar: "الإعدادات" },
@@ -166,6 +169,7 @@ const parentNavigation: NavItem[] = [
 ]
 
 const expertNavigation: NavItem[] = [
+  { name: { en: "Messages", ar: "الرسائل" }, href: "/dashboard/messages", icon: MessageSquare },
   {
     name: { en: "Cases", ar: "الحالات" },
     href: "/dashboard/expert/cases",
@@ -203,7 +207,7 @@ function renderNavItem(
       key={item.href}
       href={item.href}
       className={cn(
-        "flex items-center gap-3 rounded-lg text-sm font-medium transition-colors",
+        "flex min-h-11 items-center gap-3 rounded-lg text-sm font-medium transition-colors",
         isCollapsed ? "justify-center px-0 py-2" : "px-3 py-2",
         isActive
           ? "bg-white/20 text-white"
@@ -214,6 +218,7 @@ function renderNavItem(
     >
       <item.icon className="h-5 w-5 shrink-0" />
       {!isCollapsed && item.name[lang]}
+      {!!item.unread && <span aria-label={lang === "ar" ? `${item.unread} رسائل غير مقروءة` : `${item.unread} unread messages`} className="rounded-full bg-amber-300 px-2 py-0.5 text-xs font-bold text-slate-900">{item.unread}</span>}
     </SmartLink>
   )
 }
@@ -232,6 +237,8 @@ export function DashboardSidebar() {
 
   const role = currentUser?.role
   const isExpert = role === "expert"
+  const unread = useUnreadMessages(currentUser?.id, isAdmin || isExpert)
+  const withUnread = (item: NavItem): NavItem => item.href === "/dashboard/messages" ? { ...item, unread } : item
   const isOrganization = role === "organization"
   const isIndividual = role === "individual"
   const isParent = role === "parent"
@@ -243,6 +250,8 @@ export function DashboardSidebar() {
     }
     return false
   })
+  const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null)
+  const mobileOpen = mobileMenuPath === pathname
 
   const toggleCollapsed = () => {
     setIsCollapsed((prev) => {
@@ -257,18 +266,17 @@ export function DashboardSidebar() {
     router.push("/login")
   }
 
-  const dashboardHref =
-    isAdmin
-      ? "/dashboard/admin"
-      : isExpert
-        ? "/dashboard/expert"
-        : isOrganization
-          ? "/dashboard/institution"
-          : isIndividual
-            ? "/dashboard/individual"
-            : isParent
-              ? "/dashboard/parent"
-              : "/dashboard"
+  const dashboardHref = isAdmin
+    ? "/dashboard/admin"
+    : isExpert
+      ? "/dashboard/expert"
+      : isOrganization
+        ? "/dashboard/institution"
+        : isIndividual
+          ? "/dashboard/individual"
+          : isParent
+            ? "/dashboard/parent"
+            : "/dashboard"
 
   const dashboardLabel = isAdmin
     ? { en: "Admin Dashboard", ar: "لوحة التحكم" }
@@ -283,14 +291,52 @@ export function DashboardSidebar() {
             : { en: "Dashboard", ar: "لوحة التحكم" }
 
   return (
+    <>
+    <div className="w-full bg-primary text-primary-foreground md:hidden">
+      <div className="flex min-h-14 items-center justify-between gap-3 px-4">
+        <SmartLink href={dashboardHref} className="min-w-0 text-sm font-semibold">{dashboardLabel[lang]}</SmartLink>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-11 w-11 shrink-0 text-white hover:bg-white/10 hover:text-white"
+          onClick={() => setMobileMenuPath(mobileOpen ? null : pathname)}
+          aria-expanded={mobileOpen}
+          aria-controls="dashboard-mobile-navigation"
+          aria-label={lang === "ar" ? "قائمة لوحة التحكم" : "Dashboard navigation"}
+        >
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      </div>
+      {mobileOpen && (
+        <nav id="dashboard-mobile-navigation" aria-label={lang === "ar" ? "التنقل في لوحة التحكم" : "Dashboard navigation"} className="max-h-[65dvh] space-y-1 overflow-y-auto border-t border-white/15 p-3" onClick={() => setMobileMenuPath(null)}>
+          {renderNavItem({ name: dashboardLabel, href: dashboardHref, icon: LayoutDashboard }, pathname, lang)}
+          {(isAdmin ? adminNavigation : isExpert ? expertNavigation : isOrganization ? organizationNavigation : isIndividual ? individualNavigation : isParent ? parentNavigation : [])
+            .filter((item) => !item.superAdminOnly || isSuperAdmin)
+            .map((item) => renderNavItem(withUnread(item), pathname, lang))}
+          <Button variant="ghost" className="min-h-11 w-full justify-start text-white hover:bg-white/10 hover:text-white" onClick={handleLogout}>
+            <LogOut className="h-4 w-4" />{lang === "ar" ? "تسجيل الخروج" : "Logout"}
+          </Button>
+        </nav>
+      )}
+    </div>
     <aside
       className={cn(
-        "flex min-h-screen flex-col bg-primary text-primary-foreground transition-all duration-300",
+        "hidden min-h-screen shrink-0 flex-col bg-primary text-primary-foreground transition-all duration-300 md:flex",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
-      <div className={cn("border-b border-primary/20", isCollapsed ? "p-2" : "p-4")}>
-        <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
+      <div
+        className={cn(
+          "border-b border-primary/20",
+          isCollapsed ? "p-2" : "p-4"
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center",
+            isCollapsed ? "justify-center" : "justify-between"
+          )}
+        >
           {!isCollapsed && (
             <SmartLink href={dashboardHref} className="flex items-center gap-2">
               <span className="text-xl font-bold">DSC</span>
@@ -311,7 +357,11 @@ export function DashboardSidebar() {
                   : "Collapse sidebar"
             }
           >
-            {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+            {isCollapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
@@ -337,7 +387,7 @@ export function DashboardSidebar() {
         {isOrganization && (
           <>
             {organizationNavigation.map((item) =>
-              renderNavItem(item, pathname, lang, false, isCollapsed)
+              renderNavItem(withUnread(item), pathname, lang, false, isCollapsed)
             )}
           </>
         )}
@@ -345,7 +395,7 @@ export function DashboardSidebar() {
         {isExpert && (
           <>
             {expertNavigation.map((item) =>
-              renderNavItem(item, pathname, lang, false, isCollapsed)
+              renderNavItem(withUnread(item), pathname, lang, false, isCollapsed)
             )}
           </>
         )}
@@ -362,7 +412,7 @@ export function DashboardSidebar() {
             )}
             {adminNavigation.map((item) => {
               if (item.superAdminOnly && !isSuperAdmin) return null
-              return renderNavItem(item, pathname, lang, true, isCollapsed)
+              return renderNavItem(withUnread(item), pathname, lang, true, isCollapsed)
             })}
           </>
         )}
@@ -371,7 +421,7 @@ export function DashboardSidebar() {
         {isIndividual && (
           <>
             {individualNavigation.map((item) =>
-              renderNavItem(item, pathname, lang, false, isCollapsed)
+              renderNavItem(withUnread(item), pathname, lang, false, isCollapsed)
             )}
           </>
         )}
@@ -380,15 +430,25 @@ export function DashboardSidebar() {
         {isParent && (
           <>
             {parentNavigation.map((item) =>
-              renderNavItem(item, pathname, lang, false, isCollapsed)
+              renderNavItem(withUnread(item), pathname, lang, false, isCollapsed)
             )}
           </>
         )}
       </nav>
 
-      <div className={cn("border-t border-primary/20", isCollapsed ? "p-2" : "p-4")}>
+      <div
+        className={cn(
+          "border-t border-primary/20",
+          isCollapsed ? "p-2" : "p-4"
+        )}
+      >
         {isAuthLoading ? (
-          <div className={cn("flex items-center", isCollapsed ? "justify-center" : "gap-3")}>
+          <div
+            className={cn(
+              "flex items-center",
+              isCollapsed ? "justify-center" : "gap-3"
+            )}
+          >
             <div className="flex h-9 w-9 animate-pulse items-center justify-center rounded-full bg-white/10">
               <FolderKanban className="h-5 w-5 shrink-0 opacity-50" />
             </div>
@@ -400,7 +460,12 @@ export function DashboardSidebar() {
             )}
           </div>
         ) : (
-          <div className={cn("mb-3 flex items-center", isCollapsed ? "justify-center" : "gap-3")}>
+          <div
+            className={cn(
+              "mb-3 flex items-center",
+              isCollapsed ? "justify-center" : "gap-3"
+            )}
+          >
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
               <FolderKanban className="h-5 w-5 shrink-0" />
             </div>
@@ -430,5 +495,6 @@ export function DashboardSidebar() {
         </Button>
       </div>
     </aside>
+    </>
   )
 }

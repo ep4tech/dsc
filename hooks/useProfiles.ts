@@ -9,14 +9,19 @@ import { getCurrentUser, getErrorMessage } from "@/lib/pb"
 export function useProfiles() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
   const currentUser = getCurrentUser()
+  const currentUserId: string | undefined = currentUser?.id
+  const currentRole: string | undefined = currentUser?.role
 
   const fetchProfiles = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError("")
     try {
       let data: Profile[]
-      if (currentUser?.role === "expert") {
+      if (currentRole === "expert") {
         const expertCases = await caseExpertsCollection.getByExpert(
-          currentUser.id
+          currentUserId!
         )
         const caseIds = [
           ...new Set(
@@ -28,25 +33,28 @@ export function useProfiles() {
             ? await casesCollection.getByIds(caseIds)
             : []
       } else if (
-        currentUser &&
-        (currentUser.role === "individual" ||
-          currentUser.role === "organization" ||
-          currentUser.role === "parent")
+        currentUserId &&
+        (currentRole === "individual" ||
+          currentRole === "organization" ||
+          currentRole === "parent")
       ) {
-        data = await casesCollection.getByUser(currentUser.id)
+        data = await casesCollection.getByUser(currentUserId!)
       } else {
         data = await casesCollection.getAll()
       }
       setProfiles(data)
     } catch (error) {
       console.error("Failed to fetch profiles:", error)
+      setLoadError(getErrorMessage(error))
       toast.error(getErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
-  }, [currentUser?.id])
+  }, [currentUserId, currentRole])
 
   useEffect(() => {
+    // Fetch external records when the selected scope changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProfiles()
   }, [fetchProfiles])
 
@@ -56,7 +64,7 @@ export function useProfiles() {
       const newProfile = await casesCollection.create({
         ...data,
         user: ownerId,
-      } as any)
+      })
       setProfiles((prev) => [...prev, newProfile])
       return newProfile.id
     } catch (error) {
@@ -152,6 +160,7 @@ export function useProfiles() {
   return {
     profiles,
     isLoading,
+    loadError,
     addProfile,
     updateProfile,
     deleteProfile,

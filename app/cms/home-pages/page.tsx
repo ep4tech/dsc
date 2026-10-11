@@ -1,5 +1,7 @@
 "use client"
 
+
+import { boundedFullList } from "@/lib/bounded-records"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { homePagesCollection } from "@/lib/pb-collections"
@@ -40,8 +42,7 @@ export default function CmsHomePagesListPage() {
 
   const loadPages = () => {
     setLoading(true)
-    pb.collection("home_pages")
-      .getFullList()
+    boundedFullList(pb.collection("home_pages"))
       .then((data) => {
         setPages(data as unknown as HomePage[])
       })

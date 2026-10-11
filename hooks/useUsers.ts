@@ -1,5 +1,7 @@
 "use client"
 
+
+import { boundedFullList } from "@/lib/bounded-records"
 import { useState, useEffect, useCallback } from "react"
 import pb, { getErrorMessage } from "@/lib/pb"
 import { normalizeEmail } from "@/lib/validators"
@@ -12,7 +14,7 @@ export function useUsers() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const data = await pb.collection("users").getFullList({
+      const data = await boundedFullList(pb.collection("users"), {
         sort: "-created",
       })
       setUsers(data as unknown as User[])
@@ -86,9 +88,9 @@ export function useUsers() {
 
   const getDeletionBlockers = async (id: string) => {
     const [userCases, expertAssignments] = await Promise.all([
-      pb.collection("cases").getFullList({ filter: `user = "${id}"` }),
-      pb.collection("case_experts").getFullList({
-        filter: `expert_id = "${id}"`,
+      boundedFullList(pb.collection("cases"), { filter: pb.filter("user = {:value0}", { value0: id }) }),
+      boundedFullList(pb.collection("case_experts"), {
+        filter: pb.filter("expert_id = {:value0}", { value0: id }),
       }),
     ])
     return {
@@ -113,8 +115,8 @@ export function useUsers() {
         "expert_profiles",
       ]
       for (const collection of profileCollections) {
-        const records = await pb.collection(collection).getFullList({
-          filter: `user = "${id}"`,
+        const records = await boundedFullList(pb.collection(collection), {
+          filter: pb.filter("user = {:value0}", { value0: id }),
         })
         for (const record of records) {
           await pb.collection(collection).delete(record.id)

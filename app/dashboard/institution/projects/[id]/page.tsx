@@ -1,4 +1,5 @@
 "use client"
+import { CaseFeedback } from "@/components/cases/CaseFeedback"
 
 import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -24,24 +25,27 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   ArrowLeft,
-  Calendar,
-  Mail,
-  Phone,
   User,
   ClipboardList,
   History,
   Eye,
   Pencil,
-  Send,
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { PageLoader } from "@/components/ui/page-loader"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { DateInput } from "@/components/ui/date-input"
+import {
+  projectCaseData,
+  validateProject,
+  type ProjectDraft,
+} from "@/lib/project-validation"
 import { getErrorMessage } from "@/lib/pb"
 
-const assignmentStatusLabels: Record<
-  string,
-  { en: string; ar: string }
-> = {
+const assignmentStatusLabels: Record<string, { en: string; ar: string }> = {
   pending: { en: "Pending", ar: "قيد الانتظار" },
   assigned: { en: "Assigned", ar: "تم التعيين" },
   in_progress: { en: "In Progress", ar: "قيد التنفيذ" },
@@ -56,7 +60,7 @@ export default function ProfileDetailPage({
   const { id } = use(params)
   const router = useRouter()
   const { lang } = useLang()
-  const { getProfileById } = useProfiles()
+  const { getProfileById, updateProfile, isLoading } = useProfiles()
   const { getAssignmentsByCase, getVisibleAssignments } = useAssignments(id)
   const { toolTypes, fetchToolTypes } = useToolTypes()
   const { currentUser } = useAuth()
@@ -64,6 +68,9 @@ export default function ProfileDetailPage({
   const [expertRole, setExpertRole] = useState<string | null>(null)
   const [allowedToolTypeIds, setAllowedToolTypeIds] = useState<string[]>([])
 
+  const [draft, setDraft] = useState<ProjectDraft | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const profile = getProfileById(id)
   const assignments = getAssignmentsByCase(id)
   const visibleAssignments = getVisibleAssignments(id)
@@ -80,7 +87,7 @@ export default function ProfileDetailPage({
 
   useEffect(() => {
     async function fetchExpertRole() {
-      if (!currentUser || !id) return
+      if (!currentUser || !id || currentUser.role !== "expert") return
       try {
         const caseExpert = await caseExpertsCollection.getByCaseAndExpert(
           id,
@@ -93,12 +100,44 @@ export default function ProfileDetailPage({
         }
       } catch (error) {
         console.error("Failed to fetch expert role:", error)
-        toast.error(getErrorMessage(error))
+        toast.error(getErrorMessage(error, lang))
       }
     }
     fetchExpertRole()
-  }, [currentUser, id])
+  }, [currentUser, id, lang])
 
+  const canEdit =
+    !!profile &&
+    !!currentUser &&
+    (currentUser.role === "admin" ||
+      currentUser.role === "super_admin" ||
+      (currentUser.role === "organization" && profile.user === currentUser.id))
+  const saveProject = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!draft || !profile || !canEdit) return
+    const validation = validateProject(draft, lang)
+    setSaveError(validation)
+    if (validation) return
+    setSaving(true)
+    try {
+      await updateProfile(
+        profile.id,
+        projectCaseData(draft, profile.case_details)
+      )
+      setDraft(null)
+      toast.success(lang === "ar" ? "تم حفظ المشروع." : "Project saved.")
+    } catch (error) {
+      setSaveError(getErrorMessage(error, lang))
+    } finally {
+      setSaving(false)
+    }
+  }
+  if (isLoading)
+    return (
+      <PageLoader
+        text={lang === "ar" ? "جارٍ تحميل المشروع..." : "Loading project..."}
+      />
+    )
   if (!profile) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -106,264 +145,436 @@ export default function ProfileDetailPage({
           {lang === "ar" ? "المشروع غير موجود" : "Project not found"}
         </h2>
         <Link href="/dashboard/institution/projects">
-          <Button>{lang === "ar" ? "العودة إلى المشاريع" : "Back to Projects"}</Button>
+          <Button>
+            {lang === "ar" ? "العودة إلى المشاريع" : "Back to Projects"}
+          </Button>
         </Link>
       </div>
     )
   }
 
   return (
-    <PaymentGate profile={profile} noun="project">
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-primary">{profile.name}</h1>
-          <p className="text-muted-foreground">
-            {lang === "ar" ? `أنشئت في ${formatDate(profile.created)}` : `Created ${formatDate(profile.created)}`}
-          </p>
-        </div>
-      </div>
-
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">
-            {lang === "ar" ? "نظرة عامة" : "Overview"}
-          </TabsTrigger>
-          <TabsTrigger value="tasks">
-            {lang === "ar" ? "المهام" : "Tasks"}
-            {roleFilteredAssignments.length > 0 && (
-              <Badge variant="secondary" className="ms-2">
-                {roleFilteredAssignments.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="case-file">
-            {lang === "ar" ? "السجل" : "History"}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview">
-          <div className="grid gap-6 lg:grid-cols-2">
-            {profile.portal_type === "Attending Training" ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    {lang === "ar" ? "التسجيل في التدريب" : "Training Enrollment"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      {lang === "ar" ? "نوع الخدمة" : "Service Type"}
-                    </span>
-                    <span className="font-medium">
-                      {lang === "ar" ? "حضور تدريب" : "Attending Training"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      {lang === "ar" ? "نوع المشكلة" : "Issue Type"}
-                    </span>
-                    <span className="font-medium">
-                      {profile.service_type ||
-                        profile.sub_category ||
-                        (lang === "ar" ? "حضور تدريب" : "Attending Training")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      {lang === "ar" ? "الحالة" : "Status"}
-                    </span>
-                    <Badge variant="secondary">
-                      {profile.program_status === "enrolled"
-                        ? lang === "ar"
-                          ? "مسجل"
-                          : "enrolled"
-                        : profile.program_status}
-                    </Badge>
-                  </div>
-                  {profile.training_link && (
-                    <Link
-                      href={profile.training_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 block"
-                    >
-                      <Button variant="default" className="w-full">
-                        {lang === "ar" ? "الانضمام للاجتماع" : "Join Meeting"}
-                      </Button>
-                    </Link>
-                  )}
-                  {profile.program_id && (
-                    <Link
-                      href={`/programmes/training_programmes/${profile.program_id}`}
-                      className="mt-2 block"
-                    >
-                      <Button variant="outline" className="w-full">
-                        {lang === "ar"
-                          ? "عرض البرنامج التدريبي"
-                          : "View Training Program"}
-                      </Button>
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      {lang === "ar" ? "معلومات المشروع" : "Project Information"}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        {lang === "ar" ? "تاريخ البدء" : "Start Date"}
-                      </span>
-                      <span className="font-medium">
-                        {profile.date_of_birth
-                          ? formatDate(profile.date_of_birth)
-                          : "—"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        {lang === "ar" ? "تاريخ الانتهاء" : "End Date"}
-                      </span>
-                      <span className="font-medium">
-                        {(() => {
-                          const endDate = (profile.case_details as Record<string, unknown>)?.end_date
-                          return endDate ? formatDate(endDate as string) : "—"
-                        })()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        {lang === "ar" ? "نوع المشروع" : "Project Type"}
-                      </span>
-                      <span className="font-medium capitalize">
-                        {profile.grade || "—"}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {profile.notes && (
-                  <Card className="lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle>{lang === "ar" ? "الوصف" : "Description"}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">{profile.notes}</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="tasks">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ClipboardList className="h-5 w-5" />
-                {lang === "ar" ? "المهام المكلف بها" : "Assigned Tasks"}
+    <>
+      {canEdit && profile.portal_type !== "Attending Training" && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-wrap items-start justify-between gap-3 sm:flex-row">
+            <div>
+              <CardTitle>
+                {lang === "ar"
+                  ? "إدارة تفاصيل المشروع"
+                  : "Manage project details"}
               </CardTitle>
               <CardDescription>
                 {lang === "ar"
-                  ? "المهام المكلف بها لهذا المشروع"
-                  : "Tasks assigned to this profile"}
+                  ? "يمكنك تعديل التفاصيل دون تغيير المدفوعات أو المهام."
+                  : "Update project details while keeping payments and tasks."}
               </CardDescription>
-            </CardHeader>
+            </div>
+            {!draft && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSaveError(null)
+                  setDraft({
+                    name: profile.name,
+                    projectType: profile.grade || "",
+                    description: profile.notes || "",
+                    startDate: String(
+                      profile.case_details?.start_date ||
+                        profile.date_of_birth ||
+                        ""
+                    ).slice(0, 10),
+                    endDate: String(profile.case_details?.end_date || "").slice(
+                      0,
+                      10
+                    ),
+                  })
+                }}
+              >
+                <Pencil className="me-2 h-4 w-4" />
+                {lang === "ar" ? "تعديل" : "Edit"}
+              </Button>
+            )}
+          </CardHeader>
+          {draft && (
             <CardContent>
-              {roleFilteredAssignments.length === 0 ? (
-                <div className="py-8 text-center">
-                  <ClipboardList className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                  <h3 className="mb-2 text-lg font-medium">
-                    {lang === "ar" ? "لا توجد مهام مكلف بها" : "No tasks assigned"}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {lang === "ar"
-                      ? "ستظهر المهام هنا بمجرد تكليفها من قبل المشرف"
-                      : "Tasks will appear here once assigned by an admin"}
+              <form noValidate onSubmit={saveProject} className="space-y-4">
+                {saveError && (
+                  <p
+                    role="alert"
+                    className="rounded-md bg-destructive/5 p-3 text-sm text-destructive"
+                  >
+                    {saveError}
                   </p>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="edit-project-name">
+                    {lang === "ar" ? "اسم المشروع" : "Project name"}
+                  </Label>
+                  <Input
+                    id="edit-project-name"
+                    required
+                    minLength={3}
+                    maxLength={120}
+                    value={draft.name}
+                    onChange={(e) =>
+                      setDraft({ ...draft, name: e.target.value })
+                    }
+                  />
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {roleFilteredAssignments.map((assignment) => {
-                    const toolType = toolTypes.find(
-                      (t) => t.id === assignment.type
-                    )
-                    const toolTypeName = getToolTypeLabel(toolType, lang)
-                    return (
-                      <div
-                        key={assignment.id}
-                        className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">
-                              {lang === "ar"
-                                ? assignment.name_ar || assignment.name_en
-                                : assignment.name_en}
-                            </p>
-                            <Badge
-                              variant="outline"
-                              className="text-xs capitalize"
-                            >
-                              {toolTypeName}
-                            </Badge>
-                          </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-project-start">
+                      {lang === "ar" ? "تاريخ البدء" : "Start date"}
+                    </Label>
+                    <DateInput
+                      id="edit-project-start"
+                      value={draft.startDate}
+                      onChange={(startDate) =>
+                        setDraft({ ...draft, startDate })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-project-end">
+                      {lang === "ar" ? "تاريخ الانتهاء" : "End date"}
+                    </Label>
+                    <DateInput
+                      id="edit-project-end"
+                      value={draft.endDate}
+                      minDate={draft.startDate || undefined}
+                      onChange={(endDate) => setDraft({ ...draft, endDate })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-project-type">
+                    {lang === "ar" ? "نوع المشروع" : "Project type"}
+                  </Label>
+                  <Input
+                    id="edit-project-type"
+                    maxLength={100}
+                    value={draft.projectType}
+                    onChange={(e) =>
+                      setDraft({ ...draft, projectType: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-project-description">
+                    {lang === "ar" ? "الوصف" : "Description"}
+                  </Label>
+                  <Textarea
+                    id="edit-project-description"
+                    maxLength={3000}
+                    rows={4}
+                    value={draft.description}
+                    onChange={(e) =>
+                      setDraft({ ...draft, description: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="flex flex-wrap justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={saving}
+                    onClick={() => setDraft(null)}
+                  >
+                    {lang === "ar" ? "إلغاء" : "Cancel"}
+                  </Button>
+                  <Button disabled={saving}>
+                    {saving
+                      ? lang === "ar"
+                        ? "جارٍ الحفظ..."
+                        : "Saving..."
+                      : lang === "ar"
+                        ? "حفظ التغييرات"
+                        : "Save changes"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          )}
+        </Card>
+      )}
+      <PaymentGate profile={profile} noun="project">
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="min-w-0 flex-1">
+              <h1 className="min-w-0 text-2xl font-bold text-primary [overflow-wrap:anywhere]">
+                {profile.name}
+              </h1>
+              <p className="text-muted-foreground">
+                {lang === "ar"
+                  ? `أنشئت في ${formatDate(profile.created)}`
+                  : `Created ${formatDate(profile.created)}`}
+              </p>
+            </div>
+          </div>
+
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList className="h-auto flex-wrap">
+              <TabsTrigger value="overview">
+                {lang === "ar" ? "نظرة عامة" : "Overview"}
+              </TabsTrigger>
+              <TabsTrigger value="tasks">
+                {lang === "ar" ? "المهام" : "Tasks"}
+                {roleFilteredAssignments.length > 0 && (
+                  <Badge variant="secondary" className="ms-2">
+                    {roleFilteredAssignments.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="case-file">
+                {lang === "ar" ? "السجل" : "History"}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              <div className="grid gap-6 lg:grid-cols-2">
+                {profile.portal_type === "Attending Training" ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>
+                        {lang === "ar"
+                          ? "التسجيل في التدريب"
+                          : "Training Enrollment"}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex min-w-0 flex-wrap justify-between gap-2">
+                        <span className="text-muted-foreground">
+                          {lang === "ar" ? "نوع الخدمة" : "Service Type"}
+                        </span>
+                        <span className="min-w-0 font-medium [overflow-wrap:anywhere]">
+                          {lang === "ar" ? "حضور تدريب" : "Attending Training"}
+                        </span>
+                      </div>
+                      <div className="flex min-w-0 flex-wrap justify-between gap-2">
+                        <span className="text-muted-foreground">
+                          {lang === "ar" ? "نوع المشكلة" : "Issue Type"}
+                        </span>
+                        <span className="min-w-0 font-medium [overflow-wrap:anywhere]">
+                          {profile.service_type ||
+                            profile.sub_category ||
+                            (lang === "ar"
+                              ? "حضور تدريب"
+                              : "Attending Training")}
+                        </span>
+                      </div>
+                      <div className="flex min-w-0 flex-wrap justify-between gap-2">
+                        <span className="text-muted-foreground">
+                          {lang === "ar" ? "الحالة" : "Status"}
+                        </span>
+                        <Badge variant="secondary">
+                          {profile.program_status === "enrolled"
+                            ? lang === "ar"
+                              ? "مسجل"
+                              : "enrolled"
+                            : profile.program_status}
+                        </Badge>
+                      </div>
+                      {profile.training_link && (
+                        <Link
+                          href={profile.training_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 block"
+                        >
+                          <Button variant="default" className="w-full">
+                            {lang === "ar"
+                              ? "الانضمام للاجتماع"
+                              : "Join Meeting"}
+                          </Button>
+                        </Link>
+                      )}
+                      {profile.program_id && (
+                        <Link
+                          href={`/programmes/training_programmes/${profile.program_id}`}
+                          className="mt-2 block"
+                        >
+                          <Button variant="outline" className="w-full">
+                            {lang === "ar"
+                              ? "عرض البرنامج التدريبي"
+                              : "View Training Program"}
+                          </Button>
+                        </Link>
+                      )}
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex min-w-0 flex-wrap items-center gap-2">
+                          <User className="h-5 w-5" />
+                          {lang === "ar"
+                            ? "معلومات المشروع"
+                            : "Project Information"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex min-w-0 flex-wrap justify-between gap-2">
+                          <span className="text-muted-foreground">
+                            {lang === "ar" ? "تاريخ البدء" : "Start Date"}
+                          </span>
+                          <span className="min-w-0 font-medium [overflow-wrap:anywhere]">
+                            {profile.date_of_birth
+                              ? formatDate(profile.date_of_birth)
+                              : "—"}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {!assignment.is_not_template ? (
-                            <Link
-                              href={`/dashboard/institution/projects/${id}/tasks/${assignment.id}`}
-                            >
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                title={lang === "ar" ? "الإجابة" : "Respond"}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                          ) : (
-                            <Link
-                              href={`/dashboard/institution/projects/${id}/tasks/${assignment.id}`}
-                            >
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                title={lang === "ar" ? "عرض" : "View"}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                          )}
-                          {assignment.status === "completed" && !assignment.is_not_template && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const responses = assignment.responses
-                                if (
-                                  responses &&
-                                  Object.keys(responses).length > 0
-                                ) {
-                                  const printWindow = window.open(
-                                    "",
-                                    "_blank",
-                                    "width=800,height=600"
-                                  )
-                                  if (printWindow) {
-                                    printWindow.document.write(`
+                        <div className="flex min-w-0 flex-wrap justify-between gap-2">
+                          <span className="text-muted-foreground">
+                            {lang === "ar" ? "تاريخ الانتهاء" : "End Date"}
+                          </span>
+                          <span className="min-w-0 font-medium [overflow-wrap:anywhere]">
+                            {(() => {
+                              const endDate = (
+                                profile.case_details as Record<string, unknown>
+                              )?.end_date
+                              return endDate
+                                ? formatDate(endDate as string)
+                                : "—"
+                            })()}
+                          </span>
+                        </div>
+                        <div className="flex min-w-0 flex-wrap justify-between gap-2">
+                          <span className="text-muted-foreground">
+                            {lang === "ar" ? "نوع المشروع" : "Project Type"}
+                          </span>
+                          <span className="min-w-0 font-medium capitalize [overflow-wrap:anywhere]">
+                            {profile.grade || "—"}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {profile.notes && (
+                      <Card className="lg:col-span-2">
+                        <CardHeader>
+                          <CardTitle>
+                            {lang === "ar" ? "الوصف" : "Description"}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="min-w-0 whitespace-pre-wrap text-muted-foreground [overflow-wrap:anywhere]">
+                            {profile.notes}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tasks">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex min-w-0 flex-wrap items-center gap-2">
+                    <ClipboardList className="h-5 w-5" />
+                    {lang === "ar" ? "المهام المكلف بها" : "Assigned Tasks"}
+                  </CardTitle>
+                  <CardDescription>
+                    {lang === "ar"
+                      ? "المهام المكلف بها لهذا المشروع"
+                      : "Tasks assigned to this profile"}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {roleFilteredAssignments.length === 0 ? (
+                    <div className="py-8 text-center">
+                      <ClipboardList className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                      <h3 className="mb-2 text-lg font-medium">
+                        {lang === "ar"
+                          ? "لا توجد مهام مكلف بها"
+                          : "No tasks assigned"}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {lang === "ar"
+                          ? "ستظهر المهام هنا بمجرد تكليفها من قبل المشرف"
+                          : "Tasks will appear here once assigned by an admin"}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {roleFilteredAssignments.map((assignment) => {
+                        const toolType = toolTypes.find(
+                          (t) => t.id === assignment.type
+                        )
+                        const toolTypeName = getToolTypeLabel(toolType, lang)
+                        return (
+                          <div
+                            key={assignment.id}
+                            className="flex min-w-0 flex-col gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                <p className="min-w-0 font-medium [overflow-wrap:anywhere]">
+                                  {lang === "ar"
+                                    ? assignment.name_ar || assignment.name_en
+                                    : assignment.name_en}
+                                </p>
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs capitalize"
+                                >
+                                  {toolTypeName}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              {!assignment.is_not_template ? (
+                                <Link
+                                  href={`/dashboard/institution/projects/${id}/tasks/${assignment.id}`}
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    title={
+                                      lang === "ar" ? "الإجابة" : "Respond"
+                                    }
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              ) : (
+                                <Link
+                                  href={`/dashboard/institution/projects/${id}/tasks/${assignment.id}`}
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    title={lang === "ar" ? "عرض" : "View"}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              )}
+                              {assignment.status === "completed" &&
+                                !assignment.is_not_template && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const responses = assignment.responses
+                                      if (
+                                        responses &&
+                                        Object.keys(responses).length > 0
+                                      ) {
+                                        const printWindow = window.open(
+                                          "",
+                                          "_blank",
+                                          "width=800,height=600"
+                                        )
+                                        if (printWindow) {
+                                          printWindow.document.write(`
                                     <html>
                                       <head>
                                         <title>${assignment.name_en || (lang === "ar" ? "الردود" : "Responses")}</title>
@@ -384,93 +595,97 @@ export default function ProfileDetailPage({
                                       </body>
                                     </html>
                                   `)
-                                    printWindow.document.close()
-                                  }
+                                          printWindow.document.close()
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              <Badge
+                                variant={
+                                  assignment.status === "completed"
+                                    ? "default"
+                                    : "secondary"
                                 }
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Badge
-                            variant={
-                              assignment.status === "completed"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {assignmentStatusLabels[assignment.status]?.[lang] || assignment.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                              >
+                                {assignmentStatusLabels[assignment.status]?.[
+                                  lang
+                                ] || assignment.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        <TabsContent value="case-file">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
-                {lang === "ar" ? "السجل" : "History"}
-              </CardTitle>
-              <CardDescription>
-                {lang === "ar"
-                  ? "ستكون المهام المكتملة هنا"
-                  : "Completed Tasks will be here"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {assignments.filter((a) => a.status === "completed").length ===
-              0 ? (
-                <div className="py-8 text-center">
-                  <History className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                  <h3 className="mb-2 text-lg font-medium">
-                    {lang === "ar" ? "لا يوجد سجل بعد" : "No history yet"}
-                  </h3>
-                  <p className="text-muted-foreground">
+            <TabsContent value="case-file">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex min-w-0 flex-wrap items-center gap-2">
+                    <History className="h-5 w-5" />
+                    {lang === "ar" ? "السجل" : "History"}
+                  </CardTitle>
+                  <CardDescription>
                     {lang === "ar"
-                      ? "ستظهر المهام المكتملة هنا"
-                      : "Completed tasks will appear here"}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {assignments
-                    .filter((a) => a.status === "completed")
-                    .map((assignment) => (
-                      <div
-                        key={assignment.id}
-                        className="flex items-center justify-between rounded-lg border p-4"
-                      >
-                        <div>
-                          <p className="font-medium">
-                            {lang === "ar"
-                              ? assignment.name_ar || assignment.name_en
-                              : assignment.name_en}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {lang === "ar" ? "أكملت في" : "Completed"}{" "}
-                            {assignment.updated &&
-                              formatDate(assignment.updated)}
-                          </p>
-                        </div>
-                        <Badge variant="default">
-                          {lang === "ar" ? "مكتمل" : "Completed"}
-                        </Badge>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-    </PaymentGate>
+                      ? "ستكون المهام المكتملة هنا"
+                      : "Completed Tasks will be here"}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {assignments.filter((a) => a.status === "completed")
+                    .length === 0 ? (
+                    <div className="py-8 text-center">
+                      <History className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                      <h3 className="mb-2 text-lg font-medium">
+                        {lang === "ar" ? "لا يوجد سجل بعد" : "No history yet"}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {lang === "ar"
+                          ? "ستظهر المهام المكتملة هنا"
+                          : "Completed tasks will appear here"}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {assignments
+                        .filter((a) => a.status === "completed")
+                        .map((assignment) => (
+                          <div
+                            key={assignment.id}
+                            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4"
+                          >
+                            <div>
+                              <p className="min-w-0 font-medium [overflow-wrap:anywhere]">
+                                {lang === "ar"
+                                  ? assignment.name_ar || assignment.name_en
+                                  : assignment.name_en}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {lang === "ar" ? "أكملت في" : "Completed"}{" "}
+                                {assignment.updated &&
+                                  formatDate(assignment.updated)}
+                              </p>
+                            </div>
+                            <Badge variant="default">
+                              {lang === "ar" ? "مكتمل" : "Completed"}
+                            </Badge>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+          <CaseFeedback caseId={profile.id} ownerId={profile.user} />
+        </div>
+      </PaymentGate>
+    </>
   )
 }

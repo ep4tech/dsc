@@ -1,13 +1,18 @@
+"use client"
+
+import { usePathname } from "next/navigation"
+import styles from "@/components/internal/internal-theme.module.css"
+
 export default function RegisterLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  if (pathname === "/register" || pathname === "/register/") return children
   return (
-    <div className="flex min-h-screen items-start justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4 pt-10">
-      <div className="w-full max-w-2xl">
-        {children}
-      </div>
+    <div className={styles.page}>
+      <div className={`${styles.container} ${styles.form}`}>{children}</div>
     </div>
   )
 }

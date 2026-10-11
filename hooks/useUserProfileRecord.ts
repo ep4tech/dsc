@@ -96,7 +96,7 @@ export function useUserProfileRecord(userId?: string, role?: UserRole) {
     try {
       const record = await pb
         .collection(collectionName)
-        .getFirstListItem(`user = "${userId}"`)
+        .getFirstListItem(pb.filter("user = {:value0}", { value0: userId }))
       setProfile(record as unknown as AnyUserProfile)
     } catch (error) {
       setProfile(null)

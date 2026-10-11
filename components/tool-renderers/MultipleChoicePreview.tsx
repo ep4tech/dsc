@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useLang } from "@/lib/lang-context"
 import type { MultipleChoiceConfig, MCQuestion } from "@/types/tool"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,15 +20,10 @@ interface MultipleChoicePreviewProps {
 
 export function MultipleChoicePreview({ config, responses = {}, readOnly = false }: MultipleChoicePreviewProps) {
   const { lang } = useLang()
-  const [answers, setAnswers] = useState<Record<string, unknown>>(responses)
+  const [draftAnswers, setAnswers] = useState<Record<string, unknown>>(responses)
   const [showAnswers, setShowAnswers] = useState(false)
 
-  // Sync responses prop when in readOnly mode (displaying saved answers)
-  useEffect(() => {
-    if (readOnly) {
-      setAnswers(responses)
-    }
-  }, [responses, readOnly])
+  const answers = readOnly ? responses : draftAnswers
 
   const handleAnswer = (questionId: string, value: unknown) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))

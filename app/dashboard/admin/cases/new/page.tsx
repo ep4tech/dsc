@@ -1,12 +1,14 @@
 "use client"
 
+import pb from "@/lib/pb"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useProfiles } from "@/hooks/useProfiles"
 import { useUsers } from "@/hooks/useUsers"
 import { useLang } from "@/lib/lang-context"
 import { t } from "@/lib/i18n"
-import { PORTALS } from "@/lib/portals"
+import { usePortals } from "@/hooks/usePortals"
 import { getErrorMessage } from "@/lib/pb"
 import {
   Card,
@@ -52,6 +54,7 @@ const GRADES = [
 export default function AdminNewCasePage() {
   const router = useRouter()
   const { lang } = useLang()
+  const { portals: PORTALS } = usePortals()
   const { addProfile } = useProfiles()
   const { users } = useUsers()
 
@@ -155,7 +158,7 @@ export default function AdminNewCasePage() {
       if (!hasAmount) {
         fetch("/api/telegram-notify", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${pb.authStore.token}` },
           body: JSON.stringify({
             text: [
               "*New Case Needs Payment Amount*",

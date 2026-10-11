@@ -1,3 +1,4 @@
+import { boundedFullList } from "@/lib/bounded-records"
 import pb from "./pb"
 import type {
   TrainingProgram,
@@ -224,14 +225,14 @@ function buildCertificateFormData(
 
 export const trainingProgramsCollection = {
   async getAll(): Promise<TrainingProgram[]> {
-    const data = await pb.collection(PROGRAMS_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(PROGRAMS_COLLECTION), {
       sort: "-created",
     })
     return data.map((item) => programFromDB(item as unknown as Record<string, unknown>))
   },
 
   async getPublished(): Promise<TrainingProgram[]> {
-    const data = await pb.collection(PROGRAMS_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(PROGRAMS_COLLECTION), {
       filter: 'status = "published" || status = "in_progress"',
       sort: "schedule.startDate",
     })
@@ -245,7 +246,7 @@ export const trainingProgramsCollection = {
    * page uses.
    */
   async getPubliclyVisible(): Promise<TrainingProgram[]> {
-    const data = await pb.collection(PROGRAMS_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(PROGRAMS_COLLECTION), {
       filter:
         'status = "published" || status = "in_progress" || status = "completed"',
       sort: "schedule.startDate",
@@ -299,7 +300,7 @@ export const trainingProgramsCollection = {
 
 export const trainingRegistrationsCollection = {
   async getAll(): Promise<TrainingRegistration[]> {
-    const data = await pb.collection(REGISTRATIONS_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(REGISTRATIONS_COLLECTION), {
       sort: "-created",
       filter: `program_id != ""`,
     })
@@ -307,16 +308,16 @@ export const trainingRegistrationsCollection = {
   },
 
   async getByProgram(programId: string): Promise<TrainingRegistration[]> {
-    const data = await pb.collection(REGISTRATIONS_COLLECTION).getFullList({
-      filter: `program_id = "${programId}"`,
+    const data = await boundedFullList(pb.collection(REGISTRATIONS_COLLECTION), {
+      filter: pb.filter("program_id = {:value0}", { value0: programId }),
       sort: "-created",
     })
     return data.map((item) => registrationFromDB(item as unknown as Record<string, unknown>))
   },
 
   async getByUser(userId: string): Promise<TrainingRegistration[]> {
-    const data = await pb.collection(REGISTRATIONS_COLLECTION).getFullList({
-      filter: `user_id = "${userId}"`,
+    const data = await boundedFullList(pb.collection(REGISTRATIONS_COLLECTION), {
+      filter: pb.filter("user_id = {:value0}", { value0: userId }),
       sort: "-created",
     })
     return data.map((item) => registrationFromDB(item as unknown as Record<string, unknown>))
@@ -326,8 +327,8 @@ export const trainingRegistrationsCollection = {
     programId: string,
     userId: string
   ): Promise<TrainingRegistration | undefined> {
-    const data = await pb.collection(REGISTRATIONS_COLLECTION).getFullList({
-      filter: `program_id = "${programId}" && user_id = "${userId}" && status != "cancelled"`,
+    const data = await boundedFullList(pb.collection(REGISTRATIONS_COLLECTION), {
+      filter: pb.filter("program_id = {:value0} && user_id = {:value1} && status != \"cancelled\"", { value0: programId, value1: userId }),
     })
     return data.length > 0
       ? registrationFromDB(data[0] as unknown as Record<string, unknown>)
@@ -364,23 +365,23 @@ export const trainingRegistrationsCollection = {
 
 export const trainingCertificatesCollection = {
   async getAll(): Promise<TrainingCertificate[]> {
-    const data = await pb.collection(CERTIFICATES_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(CERTIFICATES_COLLECTION), {
       sort: "-created",
     })
     return data.map((item) => certificateFromDB(item as unknown as Record<string, unknown>))
   },
 
   async getByUser(userId: string): Promise<TrainingCertificate[]> {
-    const data = await pb.collection(CERTIFICATES_COLLECTION).getFullList({
-      filter: `user_id = "${userId}"`,
+    const data = await boundedFullList(pb.collection(CERTIFICATES_COLLECTION), {
+      filter: pb.filter("user_id = {:value0}", { value0: userId }),
       sort: "-created",
     })
     return data.map((item) => certificateFromDB(item as unknown as Record<string, unknown>))
   },
 
   async getByProgram(programId: string): Promise<TrainingCertificate[]> {
-    const data = await pb.collection(CERTIFICATES_COLLECTION).getFullList({
-      filter: `program_id = "${programId}"`,
+    const data = await boundedFullList(pb.collection(CERTIFICATES_COLLECTION), {
+      filter: pb.filter("program_id = {:value0}", { value0: programId }),
       sort: "-created",
     })
     return data.map((item) => certificateFromDB(item as unknown as Record<string, unknown>))

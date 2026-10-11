@@ -1,5 +1,7 @@
 "use client"
 
+
+import { boundedFullList } from "@/lib/bounded-records"
 import { useState, useEffect, useCallback } from "react"
 import pb, { getErrorMessage } from "@/lib/pb"
 import type { PaymentBankDetails } from "@/lib/payment"
@@ -13,7 +15,7 @@ export function usePaymentSettings() {
 
   const fetchSettings = useCallback(async () => {
     try {
-      const records = await pb.collection("settings").getFullList({ limit: 1 })
+      const records = await boundedFullList(pb.collection("settings"), { limit: 1 })
       const record = records[0]
       const stored = record?.payment_bank_details
       if (stored && typeof stored === "object") {
@@ -36,7 +38,7 @@ export function usePaymentSettings() {
 
   const saveBankDetails = async (details: PaymentBankDetails) => {
     try {
-      const records = await pb.collection("settings").getFullList({ limit: 1 })
+      const records = await boundedFullList(pb.collection("settings"), { limit: 1 })
       if (records[0]) {
         await pb
           .collection("settings")

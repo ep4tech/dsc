@@ -1,5 +1,7 @@
 "use client"
 
+
+import { boundedFullList } from "@/lib/bounded-records"
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -82,7 +84,7 @@ export default function CmsBlogEditorPage() {
   useEffect(() => {
     async function load() {
       const [rawRecords, cats] = await Promise.all([
-        pb.collection("blog_pages").getFullList({ filter: `slug = "${slug}"`, limit: 1 }),
+        boundedFullList(pb.collection("blog_pages"), { filter: pb.filter("slug = {:value0}", { value0: slug }), limit: 1 }),
         blogCategoriesCollection.getAll(),
       ])
       const rawRecord = rawRecords[0] as Record<string, unknown> | undefined

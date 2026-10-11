@@ -1,6 +1,9 @@
 "use client"
 
+
+import { boundedFullList } from "@/lib/bounded-records"
 import { useState, useEffect, useMemo, useCallback } from "react"
+import { DataError } from "@/components/ui/data-error"
 import { useAllocations } from "@/hooks/useAllocations"
 import { useUsers } from "@/hooks/useUsers"
 import { CaseSearchCombobox } from "@/components/case-search-combobox"
@@ -38,12 +41,15 @@ import {
   Users,
   Check,
   ChevronsUpDown,
-  Search,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLang } from "@/lib/lang-context"
 import { toast } from "sonner"
-import { getErrorMessage } from "@/lib/pb"
+import pb, { getErrorMessage } from "@/lib/pb"
+import { specializationLabel } from "@/components/team/team-labels"
+import { countryLabel } from "@/lib/expert-options"
+import { toStringList } from "@/hooks/useExpertProfile"
+import type { ExpertProfile } from "@/types/expert"
 import type { RolesManagement } from "@/types/expert-role"
 import {
   Popover,
@@ -72,7 +78,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-  
+
 interface AllocationRow {
   id?: string
   expert_id: string
@@ -126,9 +132,9 @@ function ExpertCombobox({
               {experts.map((expert) => (
                 <CommandItem
                   key={expert.id}
-                  value={expert.id}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue)
+                  value={expert.id + " " + expert.name + " " + expert.email}
+                  onSelect={() => {
+                    onChange(expert.id === value ? "" : expert.id)
                     setOpen(false)
                   }}
                 >
@@ -160,12 +166,20 @@ export default function AllocationsPage() {
   const { users, isLoading: isUsersLoading } = useUsers()
   const {
     allocations,
+    loadError: allocationsError,
     isLoading: isAllocationsLoading,
-    addAllocation,
-    removeAllocation,
     refresh: refreshAllocations,
   } = useAllocations()
 
+  const [expertProfiles, setExpertProfiles] = useState<ExpertProfile[]>([])
+  const [countryFilter, setCountryFilter] = useState("")
+  const [cityFilter, setCityFilter] = useState("")
+  const [specialtyFilter, setSpecialtyFilter] = useState("")
+  useEffect(() => {
+    boundedFullList(pb.collection("expert_profiles"))
+      .then((data) => setExpertProfiles(data as unknown as ExpertProfile[]))
+      .catch((error) => toast.error(getErrorMessage(error)))
+  }, [])
   const [selectedCase, setSelectedCase] = useState<string>("")
   const [rows, setRows] = useState<AllocationRow[]>([])
   const [originalRows, setOriginalRows] = useState<AllocationRow[]>([])
@@ -179,9 +193,15 @@ export default function AllocationsPage() {
     addRole,
     removeRole,
   } = useRolesManagement()
-  const { toolTypes: allToolTypes, isLoading: isToolTypesLoading, fetchToolTypes } = useToolTypes()
+  const {
+    toolTypes: allToolTypes,
+    isLoading: isToolTypesLoading,
+    fetchToolTypes,
+  } = useToolTypes()
 
-  const [roleToolTypesMap, setRoleToolTypesMap] = useState<Record<string, string[]>>({})
+  const [roleToolTypesMap, setRoleToolTypesMap] = useState<
+    Record<string, string[]>
+  >({})
   const [isSavingAll, setIsSavingAll] = useState(false)
   const [roleDialogOpen, setRoleDialogOpen] = useState(false)
   const [newRoleNameEn, setNewRoleNameEn] = useState("")
@@ -199,14 +219,19 @@ export default function AllocationsPage() {
   }, [fetchToolTypes])
 
   useEffect(() => {
-    if (roleMgmtRoles.length > 0 && Object.keys(roleToolTypesMap).length === 0) {
+    if (
+      roleMgmtRoles.length > 0 &&
+      Object.keys(roleToolTypesMap).length === 0
+    ) {
       const map: Record<string, string[]> = {}
       roleMgmtRoles.forEach((r) => {
         map[r.id] = [...(r.tool_types || [])]
       })
+      // Synchronize the editable permission map after roles load from the server.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRoleToolTypesMap(map)
     }
-  }, [roleMgmtRoles])
+  }, [roleMgmtRoles, roleToolTypesMap])
 
   const handleRoleToolTypesChange = (roleId: string, toolTypeIds: string[]) => {
     setRoleToolTypesMap((prev) => ({ ...prev, [roleId]: toolTypeIds }))
@@ -229,7 +254,9 @@ export default function AllocationsPage() {
     setIsSavingAll(true)
     try {
       await Promise.all(
-        changed.map((role) => updateRoleToolTypes(role.id, roleToolTypesMap[role.id]))
+        changed.map((role) =>
+          updateRoleToolTypes(role.id, roleToolTypesMap[role.id])
+        )
       )
     } catch (error) {
       console.error("Failed to save role tool types:", error)
@@ -294,6 +321,9 @@ export default function AllocationsPage() {
         editingRole.role_name_en
       )
       await refreshAllocations()
+      toast.success(
+        lang === "ar" ? "تم حفظ الإسنادات" : "Case allocations saved"
+      )
       setEditRoleDialogOpen(false)
       setEditingRole(null)
     } catch (error) {
@@ -342,9 +372,28 @@ export default function AllocationsPage() {
   const experts = useMemo(
     () =>
       users
-        .filter((u) => u.role === "expert")
+        .filter((u) => u.role === "expert" && u.is_active)
+        .filter((u) => {
+          const profile = expertProfiles.find((p) => p.user === u.id)
+          return (
+            (!countryFilter ||
+              ((profile?.country_of_residence || "") + " " + countryLabel(profile?.country_of_residence || "", lang))
+                .toLowerCase()
+                .includes(countryFilter.toLowerCase())) &&
+            (!cityFilter ||
+              (profile?.city || "")
+                .toLowerCase()
+                .includes(cityFilter.toLowerCase())) &&
+            (!specialtyFilter ||
+              toStringList(profile?.specialization_type).some((v) =>
+                (v + " " + specializationLabel(v, lang))
+                  .toLowerCase()
+                  .includes(specialtyFilter.toLowerCase())
+              ))
+          )
+        })
         .map((u) => ({ id: u.id, name: u.name, email: u.email })),
-    [users]
+    [users, expertProfiles, countryFilter, cityFilter, specialtyFilter, lang]
   )
 
   // Load existing allocations when case is selected
@@ -363,13 +412,16 @@ export default function AllocationsPage() {
   )
 
   useEffect(() => {
+    if (isSaving) return
     if (selectedCase) {
+      // Synchronize rows when the selected case or its saved allocations change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadAllocationsForCase(selectedCase)
     } else {
       setRows([])
       setOriginalRows([])
     }
-  }, [selectedCase, loadAllocationsForCase])
+  }, [selectedCase, loadAllocationsForCase, isSaving])
 
   const addRow = () => {
     setRows((prev) => [
@@ -382,10 +434,7 @@ export default function AllocationsPage() {
     setRows((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const updateRow = (
-    index: number,
-    updates: Partial<AllocationRow>
-  ) => {
+  const updateRow = (index: number, updates: Partial<AllocationRow>) => {
     setRows((prev) =>
       prev.map((row, i) => (i === index ? { ...row, ...updates } : row))
     )
@@ -395,11 +444,9 @@ export default function AllocationsPage() {
     if (!selectedCase) return
 
     // Validate rows
-    const invalidRows = rows.filter(
-      (r) => !r.expert_id || !r.role
-    )
+    const invalidRows = rows.filter((r) => !r.expert_id || !r.role)
     if (invalidRows.length > 0) {
-      alert(
+      toast.error(
         lang === "ar"
           ? "يرجى اختيار خبير ودور لكل صف."
           : "Please select an expert and role for each row."
@@ -409,51 +456,10 @@ export default function AllocationsPage() {
 
     setIsSaving(true)
     try {
-      // Find removed rows
-      const removedIds = originalRows
-        .filter(
-          (orig) => !rows.some((r) => r.id && r.id === orig.id)
-        )
-        .map((r) => r.id!)
-
-      // Find updated rows (existing with changes)
-      const updatedRows = rows.filter((row) => {
-        if (!row.id) return false
-        const original = originalRows.find((o) => o.id === row.id)
-        if (!original) return false
-        return (
-          original.expert_id !== row.expert_id || original.role !== row.role
-        )
+      await pb.send(`/api/dsc/cases/${selectedCase}/allocations`, {
+        method: "POST",
+        body: { rows },
       })
-
-      // Find new rows
-      const newRows = rows.filter((row) => !row.id)
-
-      // Execute changes
-      await Promise.all([
-        // Delete removed
-        ...removedIds.map((id) => removeAllocation(id)),
-        // Update existing
-        ...updatedRows.map((row) =>
-          removeAllocation(row.id!).then(() =>
-            addAllocation({
-              case_id: selectedCase,
-              expert_id: row.expert_id,
-              role: row.role,
-            })
-          )
-        ),
-        // Create new
-        ...newRows.map((row) =>
-          addAllocation({
-            case_id: selectedCase,
-            expert_id: row.expert_id,
-            role: row.role,
-          })
-        ),
-      ])
-
-      // Refresh and update original rows
       await refreshAllocations()
     } catch (error) {
       console.error("Failed to save allocations:", error)
@@ -468,7 +474,11 @@ export default function AllocationsPage() {
     }
   }
 
-  const isLoading = isUsersLoading || isAllocationsLoading
+  const isLoading =
+    isUsersLoading ||
+    isAllocationsLoading ||
+    isRolesLoading ||
+    isToolTypesLoading
 
   if (isLoading) {
     return (
@@ -495,8 +505,7 @@ export default function AllocationsPage() {
     )
   }
 
-  const hasChanges =
-    JSON.stringify(rows) !== JSON.stringify(originalRows)
+  const hasChanges = JSON.stringify(rows) !== JSON.stringify(originalRows)
 
   return (
     <div className="space-y-6">
@@ -519,6 +528,9 @@ export default function AllocationsPage() {
         </div>
       </div>
 
+      {allocationsError && (
+        <DataError message={allocationsError} onRetry={refreshAllocations} />
+      )}
       <Tabs defaultValue="allocations">
         <TabsList>
           <TabsTrigger value="allocations">
@@ -530,6 +542,38 @@ export default function AllocationsPage() {
         </TabsList>
 
         <TabsContent value="allocations" className="space-y-6">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Input
+              aria-label={
+                lang === "ar" ? "بلد الإقامة" : "Country of Residence"
+              }
+              placeholder={
+                lang === "ar"
+                  ? "البحث حسب بلد الإقامة"
+                  : "Filter by country of residence"
+              }
+              value={countryFilter}
+              onChange={(e) => setCountryFilter(e.target.value)}
+            />
+            <Input
+              aria-label={lang === "ar" ? "مدينة الإقامة" : "City of Residence"}
+              placeholder={
+                lang === "ar"
+                  ? "البحث حسب مدينة الإقامة"
+                  : "Filter by city of residence"
+              }
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+            />
+            <Input
+              aria-label={lang === "ar" ? "التخصص" : "Specialization"}
+              placeholder={
+                lang === "ar" ? "البحث حسب التخصص" : "Filter by specialization"
+              }
+              value={specialtyFilter}
+              onChange={(e) => setSpecialtyFilter(e.target.value)}
+            />
+          </div>
           <div className="flex justify-end">
             <Button
               onClick={handleSave}
@@ -601,9 +645,7 @@ export default function AllocationsPage() {
                 <div className="py-12 text-center">
                   <Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
                   <h3 className="mb-2 text-lg font-medium">
-                    {lang === "ar"
-                      ? "لم يتم اختيار قضية"
-                      : "No case selected"}
+                    {lang === "ar" ? "لم يتم اختيار قضية" : "No case selected"}
                   </h3>
                   <p className="text-muted-foreground">
                     {lang === "ar"
@@ -714,7 +756,9 @@ export default function AllocationsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>
-                    {lang === "ar" ? "إدارة أدوار الخبراء" : "Expert Role Management"}
+                    {lang === "ar"
+                      ? "إدارة أدوار الخبراء"
+                      : "Expert Role Management"}
                   </CardTitle>
                   <CardDescription>
                     {lang === "ar"
@@ -735,11 +779,11 @@ export default function AllocationsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>{lang === "ar" ? "الدور" : "Role"}</TableHead>
                       <TableHead>
-                        {lang === "ar" ? "الدور" : "Role"}
-                      </TableHead>
-                      <TableHead>
-                        {lang === "ar" ? "أنواع الأدوات المخصصة" : "Assigned Tool Types"}
+                        {lang === "ar"
+                          ? "أنواع الأدوات المخصصة"
+                          : "Assigned Tool Types"}
                       </TableHead>
                       <TableHead className="text-right">
                         {lang === "ar" ? "إجراءات" : "Actions"}
@@ -758,7 +802,11 @@ export default function AllocationsPage() {
                           </TableCell>
                           <TableCell>
                             <ToolTypeMultiSelect
-                              value={roleToolTypesMap[role.id] || role.tool_types || []}
+                              value={
+                                roleToolTypesMap[role.id] ||
+                                role.tool_types ||
+                                []
+                              }
                               onChange={(toolTypeIds) =>
                                 handleRoleToolTypesChange(role.id, toolTypeIds)
                               }
@@ -815,11 +863,8 @@ export default function AllocationsPage() {
                   </TableBody>
                 </Table>
               )}
-              <div className="flex justify-end mt-4">
-                <Button
-                  onClick={handleSaveAllRoles}
-                  disabled={isSavingAll}
-                >
+              <div className="mt-4 flex justify-end">
+                <Button onClick={handleSaveAllRoles} disabled={isSavingAll}>
                   {isSavingAll
                     ? lang === "ar"
                       ? "جاري الحفظ..."

@@ -7,8 +7,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { EmailInput } from "@/components/ui/email-input"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent } from "@/components/ui/card"
-import { Phone, Mail, MapPin, Loader2, Send } from "lucide-react"
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Loader2,
+  Send,
+  MessageCircle,
+  ArrowUpRight,
+  Check,
+} from "lucide-react"
 import { COUNTRY_CODES } from "@/lib/country-codes"
 import {
   Select,
@@ -18,12 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { getErrorMessage } from "@/lib/pb"
-import {
-  EMAIL_INVALID_MESSAGE,
-  isValidEmail,
-  normalizeEmail,
-} from "@/lib/validators"
+import { validateContact, type ContactValues } from "@/lib/contact-validation"
+import { normalizeEmail } from "@/lib/validators"
+import styles from "./contact.module.css"
 
 export default function ContactPage() {
   const { lang } = useLang()
@@ -35,15 +40,41 @@ export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<keyof ContactValues, string>>
+  >({})
+  const currentValidation = validateContact(
+    { name, email, countryCode, phoneNumber, description },
+    lang
+  )
+  const visibleFieldErrors = Object.fromEntries(
+    Object.keys(fieldErrors).map((key) => [
+      key,
+      currentValidation[key as keyof ContactValues],
+    ])
+  ) as Partial<Record<keyof ContactValues, string>>
+  const fieldError = (key: keyof ContactValues) =>
+    visibleFieldErrors[key] ? (
+      <p
+        id={`contact-${key}-error`}
+        role="alert"
+        className="mt-1 text-sm text-destructive"
+      >
+        {visibleFieldErrors[key]}
+      </p>
+    ) : null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError("")
 
-    if (!isValidEmail(email)) {
-      toast.error(t(EMAIL_INVALID_MESSAGE, lang))
-      return
-    }
+    if (submitting) return
+    const errors = validateContact(
+      { name, email, countryCode, phoneNumber, description },
+      lang
+    )
+    setFieldErrors(errors)
+    if (Object.keys(errors).length) return
 
     setSubmitting(true)
 
@@ -51,42 +82,16 @@ export default function ContactPage() {
       const cleanName = name.trim()
       const cleanEmail = normalizeEmail(email)
 
-      const emailLabels =
-        lang === "ar"
-          ? {
-              title: "رسالة تواصل جديدة",
-              name: "الاسم",
-              phone: "الهاتف",
-              email: "البريد الإلكتروني",
-              description: "الوصف",
-              subjectPrefix: "رسالة تواصل من:",
-            }
-          : {
-              title: "New Contact Message",
-              name: "Name",
-              phone: "Phone",
-              email: "Email",
-              description: "Description",
-              subjectPrefix: "Contact message from:",
-            }
-
-      const html = [
-        `<h2>${emailLabels.title}</h2>`,
-        `<p><strong>${emailLabels.name}:</strong> ${cleanName}</p>`,
-        `<p><strong>${emailLabels.phone}:</strong> ${countryCode} ${phoneNumber.trim()}</p>`,
-        `<p><strong>${emailLabels.email}:</strong> ${cleanEmail}</p>`,
-        description ? `<p><strong>${emailLabels.description}:</strong><br/>${description.trim()}</p>` : "",
-      ].join("\n")
-
-      const response = await fetch("/api/send-email", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "admin@dsc.ac",
-          to: cleanEmail,
-          cc: "contact@dsc.ac",
-          subject: `${emailLabels.subjectPrefix} ${cleanName}`,
-          html,
+          name: cleanName,
+          email: cleanEmail,
+          countryCode,
+          phoneNumber,
+          description,
+          lang,
         }),
       })
 
@@ -105,359 +110,361 @@ export default function ContactPage() {
         )
       )
       setDone(true)
-    } catch (err) {
-      toast.error(getErrorMessage(err, lang))
+    } catch {
+      const message =
+        lang === "ar"
+          ? "تعذر إرسال الرسالة. يرجى المحاولة مرة أخرى لاحقًا."
+          : "Unable to send your message. Please try again later."
+      setError(message)
+      toast.error(message)
     } finally {
       setSubmitting(false)
     }
   }
 
-  const accentColor = "#0b1a30"
-  const goldColor = "#c9a227"
+  const contacts = [
+    {
+      label: { en: "Phone", ar: "الهاتف" },
+      value: "+962 78012 7435",
+      href: "tel:+962780127435",
+      icon: Phone,
+    },
+    {
+      label: { en: "WhatsApp", ar: "واتساب" },
+      value: "+962 788 689123",
+      href: "https://wa.me/962788689123",
+      icon: MessageCircle,
+    },
+    {
+      label: { en: "Telephone", ar: "الهاتف الثابت" },
+      value: "+962 6 5652527",
+      href: "tel:+96265652527",
+      icon: Phone,
+    },
+    {
+      label: { en: "Email", ar: "البريد الإلكتروني" },
+      value: "support@dsc.ac",
+      href: "mailto:support@dsc.ac",
+      icon: Mail,
+    },
+  ]
 
   return (
-    <div className="flex flex-col">
-      {/* Hero Banner */}
-      <section
-        className="py-16 md:py-24"
-        style={{ backgroundColor: accentColor }}
-      >
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <div className="mb-4 inline-block">
-            <div
-              className="h-1 w-16"
-              style={{ backgroundColor: goldColor }}
-            />
-          </div>
-          <h1 className="text-3xl font-bold text-white md:text-5xl">
-            {t({ en: "Contact Us", ar: "اتصل بنا" }, lang)}
-          </h1>
-          <p
-            className="mx-auto mt-4 max-w-2xl text-base leading-relaxed md:text-lg"
-            style={{ color: "#d4a017" }}
-          >
-            {t(
-              {
-                en: "Have a question or want to work with us? Fill out the form below and we will get back to you as soon as possible.",
-                ar: "هل لديك سؤال أو ترغب في العمل معنا؟ املأ النموذج أدناه وسنعود إليك في أقرب وقت ممكن.",
-              },
-              lang
-            )}
-          </p>
-        </div>
+    <div className={styles.page} dir={lang === "ar" ? "rtl" : "ltr"}>
+      <section className={styles.hero} aria-labelledby="contact-title">
+        <span className={styles.goldRule} aria-hidden="true" />
+        <h1 id="contact-title">
+          {t({ en: "Contact Us", ar: "اتصل بنا" }, lang)}
+        </h1>
       </section>
-
-      {/* Contact Content */}
-      <section className="flex-1 bg-white py-16">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
-            {/* Left: Contact Info */}
-            <div className="flex flex-col gap-8">
-              <div>
-                <h2
-                  className="mb-2 text-2xl font-bold"
-                  style={{ color: accentColor }}
-                >
-                  {t(
-                    { en: "Get in Touch", ar: "تواصل معنا" },
-                    lang
-                  )}
-                </h2>
-                <p className="text-muted-foreground">
-                  {t(
-                    {
-                      en: "We are here to help and answer any question you might have. We look forward to hearing from you.",
-                      ar: "نحن هنا للمساعدة والإجابة على أي سؤال قد يكون لديك. نتطلع إلى سماع منك.",
-                    },
-                    lang
-                  )}
-                </p>
-              </div>
-
-              <Card className="border-0 shadow-none">
-                <CardContent className="flex flex-col gap-6 ps-6">
-                  <div className="flex items-start gap-4">
-                    <Phone className="h-5 w-5 shrink-0 mt-0.5" style={{ color: goldColor }} />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {t({ en: "Phone", ar: "الهاتف" }, lang)}
-                      </p>
-                      <a 
-                        href="tel:+962780127435"
-                        className="hover:text-[#FFFF66]"
-                      >
-                        <p className="text-sm text-muted-foreground">
-                          {t(
-                            {
-                              en: "+962 78012 7435",
-                              ar: "+962 78012 7435",
-                            },
-                            lang
-                          )}
-                        </p>
-                      </a>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <i className="fab fa-whatsapp mt-0.5" style={{ color: goldColor, fontSize: 20 }} />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {t({ en: "WhatsApp", ar: "واتساب" }, lang)}
-                      </p>
-                      <a 
-                        href="https://wa.me/962788689123"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-[#FFFF66]"
-                      >
-                        <p className="text-sm text-muted-foreground">
-                          {t(
-                            {
-                              en: "+962 788 689123",
-                              ar: "+962 788 689123",
-                            },
-                            lang
-                          )}
-                        </p>
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <Phone className="h-5 w-5 shrink-0 mt-0.5" style={{ color: goldColor }} />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {t({ en: "Telephone", ar: "هاتف ثابت" }, lang)}
-                      </p>
-                      <a 
-                        href="tel:+96265652527"
-                        className="hover:text-[#FFFF66]"
-                      >
-                        <p className="text-sm text-muted-foreground">
-                          {t(
-                            {
-                              en: "+962 6 5652527",
-                              ar: "+962 6 5652527",
-                            },
-                            lang
-                          )}
-                        </p>
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <Mail className="h-5 w-5 shrink-0 mt-0.5" style={{ color: goldColor }} />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {t({ en: "Email", ar: "البريد الإلكتروني" }, lang)}
-                      </p>
-                      <a
-                        href="mailto:support@dsc.ac"
-                        className="hover:text-[#FFFF66]"
-                      >
-                        <p className="text-sm text-muted-foreground">
-                          support@dsc.ac
-                        </p>
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <MapPin className="h-5 w-5 shrink-0 mt-0.5" style={{ color: goldColor }} />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {t({ en: "Address", ar: "العنوان" }, lang)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {t(
-                          {
-                            en: "Amman / Jordan",
-                            ar: "عمان / الأردن",
-                          },
-                          lang
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right: Contact Form */}
-            <Card className="shadow-sm">
-              <CardContent className="p-6 md:p-8">
-                {done ? (
-                  <div className="py-12 text-center">
-                    <div
-                      className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-white"
-                      style={{ backgroundColor: "#22c55e" }}
-                    >
-                      <Send className="h-6 w-6" />
-                    </div>
-                    <h3
-                      className="text-xl font-bold"
-                      style={{ color: accentColor }}
-                    >
-                      {t(
-                        {
-                          en: "Message Sent Successfully!",
-                          ar: "تم إرسال الرسالة بنجاح!",
-                        },
-                        lang
-                      )}
-                    </h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {t(
-                        {
-                          en: "Thank you for reaching out. We will get back to you within 48 hours.",
-                          ar: "شكرًا على تواصلك. سنعود إليك خلال 48 ساعة.",
-                        },
-                        lang
-                      )}
-                    </p>
-                    <Button
-                      className="mt-6"
-                      variant="outline"
-                      onClick={() => {
-                        setDone(false)
-                        setName("")
-                        setCountryCode("")
-                        setPhoneNumber("")
-                        setEmail("")
-                        setDescription("")
-                      }}
-                    >
-                      {t(
-                        { en: "Send Another Message", ar: "إرسال رسالة أخرى" },
-                        lang
-                      )}
-                    </Button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                        {t({ en: "Name", ar: "الاسم" }, lang)}
-                      </label>
-                      <Input
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        autoComplete="name"
-                        placeholder={t(
-                          { en: "Your full name", ar: "اسمك الكامل" },
-                          lang
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                        {t({ en: "Phone Number", ar: "رقم الهاتف" }, lang)}
-                      </label>
-                      <div className="flex gap-2">
-                         <Select value={countryCode} onValueChange={setCountryCode}>
-                           <SelectTrigger className="w-40">
-                            <SelectValue placeholder={t({ en: "Your country code", ar: "رمز بلدك" }, lang)}
-                          />
-                           </SelectTrigger>
-                           <SelectContent position="popper" sideOffset={4} className="max-h-60! overflow-y-auto w-40">
-                             {COUNTRY_CODES.map((c) => (
-                               <SelectItem key={c.value} value={c.dialCode}>
-                                 {t(c.label, lang)} ({c.dialCode})
-                               </SelectItem>
-                             ))}
-                           </SelectContent>
-                         </Select>
-                        <Input
-                          type="tel"
-                          required
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                          autoComplete="tel"
-                          inputMode="tel"
-                          placeholder={t(
-                            {
-                              en: "Your phone number",
-                              ar: "رقم هاتفك",
-                            },
-                            lang
-                          )}
-                          className="flex-1"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                        {t({ en: "Email", ar: "البريد الإلكتروني" }, lang)}
-                      </label>
-                      <EmailInput
-                        value={email}
-                        onChange={setEmail}
-                        required
-                        placeholder={t(
-                          {
-                            en: "your@email.com",
-                            ar: "بريدك@الإلكتروني.com",
-                          },
-                          lang
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                        {t(
-                          { en: "Description", ar: "الوصف" },
-                          lang
-                        )}
-                      </label>
-                      <Textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder={t(
-                          {
-                            en: "How can we help you?",
-                            ar: "كيف يمكننا مساعدتك؟",
-                          },
-                          lang
-                        )}
-                        rows={4}
-                      />
-                    </div>
-
-                    {error && (
-                      <p className="text-sm text-red-500">{error}</p>
-                    )}
-
-                    <Button
-                      type="submit"
-                      disabled={submitting}
-                      className="w-full text-base font-semibold"
-                      style={{
-                        backgroundColor: goldColor,
-                        color: "#fff",
-                      }}
-                    >
-                      {submitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t(
-                            { en: "Sending...", ar: "جاري الإرسال..." },
-                            lang
-                          )}
-                        </>
-                      ) : (
-                        t({ en: "Submit", ar: "إرسال" }, lang)
-                      )}
-                    </Button>
-                  </form>
+      <section className={styles.content}>
+        <div className={styles.layout}>
+          <section className={styles.info} aria-labelledby="contact-info-title">
+            <div className={styles.heading}>
+              <h2 id="contact-info-title">
+                {t({ en: "Get in Touch", ar: "تواصل معنا" }, lang)}
+              </h2>
+              <p>
+                {t(
+                  {
+                    en: "We are here to help and answer your questions. We look forward to hearing from you.",
+                    ar: "نحن هنا لمساعدتك والإجابة عن أسئلتك. يسعدنا تواصلك معنا.",
+                  },
+                  lang
                 )}
-              </CardContent>
-            </Card>
-          </div>
+              </p>
+            </div>
+            <div className={styles.contactCard}>
+              {contacts.map(({ label, value, href, icon: Icon }) => (
+                <a
+                  key={href}
+                  href={href}
+                  className={styles.contactRow}
+                  {...(href.startsWith("https:")
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                >
+                  <span className={styles.iconTile}>
+                    <Icon size={21} strokeWidth={1.7} aria-hidden="true" />
+                  </span>
+                  <span className={styles.contactText}>
+                    <strong>{t(label, lang)}</strong>
+                    <bdi dir="ltr">{value}</bdi>
+                  </span>
+                  <ArrowUpRight
+                    className={styles.linkArrow}
+                    size={17}
+                    aria-hidden="true"
+                  />
+                </a>
+              ))}
+              <div className={styles.contactRow}>
+                <span className={styles.iconTile}>
+                  <MapPin size={21} strokeWidth={1.7} aria-hidden="true" />
+                </span>
+                <span className={styles.contactText}>
+                  <strong>{t({ en: "Address", ar: "العنوان" }, lang)}</strong>
+                  <span>
+                    {t({ en: "Alhubaihah", ar: "الجبيهة" }, lang)}
+                    <br />
+                    {t(
+                      { en: "Amman, 11118, Jordan", ar: "عمان، 11118، الأردن" },
+                      lang
+                    )}
+                  </span>
+                </span>
+              </div>
+            </div>
+          </section>
+          <section
+            className={styles.formColumn}
+            aria-labelledby="contact-form-title"
+          >
+            <div className={styles.heading}>
+              <h2 id="contact-form-title">
+                {t({ en: "Contact Form", ar: "نموذج التواصل" }, lang)}
+              </h2>
+              <p>
+                {t(
+                  {
+                    en: "Have a question or want to work with us? Tell us how we can help using the form below.",
+                    ar: "هل لديك سؤال أو ترغب في العمل معنا؟ أخبرنا كيف يمكننا مساعدتك عبر النموذج أدناه.",
+                  },
+                  lang
+                )}
+              </p>
+            </div>
+            <div className={styles.formCard}>
+              {done ? (
+                <div className={styles.success} role="status">
+                  <div
+                    className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-white"
+                    style={{ backgroundColor: "#22c55e" }}
+                  >
+                    <Check className="h-7 w-7" />
+                  </div>
+                  <h3 className="text-xl font-bold">
+                    {t(
+                      {
+                        en: "Message Sent Successfully!",
+                        ar: "تم إرسال الرسالة بنجاح!",
+                      },
+                      lang
+                    )}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {t(
+                      {
+                        en: "Thank you for reaching out. Your message has been received.",
+                        ar: "شكرًا على تواصلك. تم استلام رسالتك.",
+                      },
+                      lang
+                    )}
+                  </p>
+                  <Button
+                    className="mt-6"
+                    variant="outline"
+                    onClick={() => {
+                      setDone(false)
+                      setName("")
+                      setCountryCode("")
+                      setPhoneNumber("")
+                      setEmail("")
+                      setDescription("")
+                    }}
+                  >
+                    {t(
+                      { en: "Send Another Message", ar: "إرسال رسالة أخرى" },
+                      lang
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <form
+                  noValidate
+                  onSubmit={handleSubmit}
+                  className={styles.form}
+                  aria-busy={submitting}
+                >
+                  <div>
+                    <label
+                      htmlFor="contact-name"
+                      className="mb-2 block text-sm font-medium"
+                    >
+                      {t({ en: "Name", ar: "الاسم" }, lang)}
+                    </label>
+                    <Input
+                      id="contact-name"
+                      placeholder={
+                        lang === "ar" ? "اسمك الكامل" : "Your full name"
+                      }
+                      required
+                      minLength={2}
+                      maxLength={100}
+                      autoComplete="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      aria-invalid={!!visibleFieldErrors.name}
+                      aria-describedby={`contact-name-help${visibleFieldErrors.name ? " contact-name-error" : ""}`}
+                    />
+                    {fieldError("name")}
+                    <p
+                      id="contact-name-help"
+                      className="mt-1 text-xs text-muted-foreground"
+                    >
+                      {lang === "ar" ? "من 2 إلى 100 حرف" : "2–100 characters"}
+                    </p>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="contact-phone"
+                      className="mb-2 block text-sm font-medium"
+                    >
+                      {t({ en: "Phone Number", ar: "رقم الهاتف" }, lang)}
+                    </label>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Select
+                        value={countryCode}
+                        onValueChange={setCountryCode}
+                      >
+                        <SelectTrigger
+                          aria-label={
+                            lang === "ar" ? "رمز البلد" : "Country code"
+                          }
+                          className="w-full sm:w-40"
+                          aria-invalid={!!visibleFieldErrors.countryCode}
+                          aria-describedby={
+                            visibleFieldErrors.countryCode
+                              ? "contact-countryCode-error"
+                              : undefined
+                          }
+                        >
+                          <SelectValue
+                            placeholder={
+                              lang === "ar" ? "اختر رمز البلد" : "Country code"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent position="popper" className="max-h-60">
+                          {COUNTRY_CODES.map((c) => (
+                            <SelectItem key={c.value} value={c.dialCode}>
+                              {t(c.label, lang)} ({c.dialCode})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        id="contact-phone"
+                        placeholder={
+                          lang === "ar" ? "رقم هاتفك" : "Your phone number"
+                        }
+                        type="tel"
+                        required
+                        minLength={7}
+                        maxLength={15}
+                        autoComplete="tel-national"
+                        inputMode="tel"
+                        dir="ltr"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        aria-invalid={!!visibleFieldErrors.phoneNumber}
+                        aria-describedby={`contact-phone-help${visibleFieldErrors.phoneNumber ? " contact-phoneNumber-error" : ""}`}
+                        className="min-w-0 flex-1"
+                      />
+                    </div>
+                    {fieldError("countryCode")}
+                    {fieldError("phoneNumber")}
+                    <p
+                      id="contact-phone-help"
+                      className="mt-1 text-xs text-muted-foreground"
+                    >
+                      {lang === "ar"
+                        ? "من 7 إلى 15 رقمًا، دون رمز البلد"
+                        : "7–15 digits, excluding country code"}
+                    </p>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="contact-email"
+                      className="mb-2 block text-sm font-medium"
+                    >
+                      {t({ en: "Email", ar: "البريد الإلكتروني" }, lang)}
+                    </label>
+                    <EmailInput
+                      id="contact-email"
+                      placeholder="you@example.com"
+                      required
+                      maxLength={254}
+                      value={email}
+                      onChange={setEmail}
+                      error={visibleFieldErrors.email}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="contact-description"
+                      className="mb-2 block text-sm font-medium"
+                    >
+                      {t({ en: "Message", ar: "الرسالة" }, lang)}
+                    </label>
+                    <Textarea
+                      id="contact-description"
+                      placeholder={
+                        lang === "ar"
+                          ? "كيف يمكننا مساعدتك؟"
+                          : "How can we help you?"
+                      }
+                      required
+                      minLength={10}
+                      maxLength={2000}
+                      rows={4}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      aria-invalid={!!visibleFieldErrors.description}
+                      aria-describedby={`contact-message-help${visibleFieldErrors.description ? " contact-description-error" : ""}`}
+                    />
+                    {fieldError("description")}
+                    <p
+                      id="contact-message-help"
+                      className="mt-1 text-xs text-muted-foreground"
+                    >
+                      {lang === "ar"
+                        ? "من 10 إلى 2000 حرف"
+                        : "10–2000 characters"}{" "}
+                      · {description.length}/2000
+                    </p>
+                  </div>
+
+                  {error && (
+                    <p role="alert" className={styles.error}>
+                      {error}
+                    </p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className={styles.submit}
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t({ en: "Sending...", ar: "جاري الإرسال..." }, lang)}
+                      </>
+                    ) : (
+                      <>
+                        {t({ en: "Send Message", ar: "إرسال الرسالة" }, lang)}
+                        <Send
+                          className="h-4 w-4 rtl:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </>
+                    )}
+                  </Button>
+                </form>
+              )}
+            </div>
+          </section>
         </div>
       </section>
     </div>

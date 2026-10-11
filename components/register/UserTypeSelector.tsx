@@ -1,86 +1,184 @@
 "use client"
 
+
+import { boundedFullList } from "@/lib/bounded-records"
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { t } from "@/lib/i18n"
+import { ArrowRight } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { useLang } from "@/lib/lang-context"
-import pb, { getErrorMessage } from "@/lib/pb"
-import { toast } from "sonner"
+import pb from "@/lib/pb"
 import type { LookupEntry } from "@/types/lookup"
-import { User, Users, Building2, GraduationCap } from "lucide-react"
-
-const USER_TYPE_ICONS: Record<string, React.ReactNode> = {
-  parent: <Users className="h-8 w-8" />,
-  individual: <User className="h-8 w-8" />,
-  organization: <Building2 className="h-8 w-8" />,
-  expert: <GraduationCap className="h-8 w-8" />,
-}
-
-const USER_TYPE_ROUTES: Record<string, string> = {
-  parent: "/register/parent",
-  individual: "/register/individual",
-  organization: "/register/organization",
-  expert: "/register/expert",
-}
+import { registrationRoles } from "./registration-journeys"
+import styles from "./registration.module.css"
 
 export function UserTypeSelector() {
   const { lang } = useLang()
   const [userTypes, setUserTypes] = useState<LookupEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const ar = lang === "ar"
 
   useEffect(() => {
-    async function fetchUserTypes() {
-      try {
-        const data = await pb
-          .collection("lookups")
-          .getFullList({ filter: 'type = "user_types"' })
-        setUserTypes(data as unknown as LookupEntry[])
-      } catch (error) {
-        console.error("Failed to fetch user types:", error)
-        toast.error(getErrorMessage(error))
-      } finally {
-        setIsLoading(false)
-      }
+    let active = true
+    // The four supported forms remain available if optional CMS labels are unavailable.
+    boundedFullList(pb.collection("lookups"), { filter: 'type = "user_types"', requestKey: null })
+      .then((data) => {
+        if (active) setUserTypes(data as unknown as LookupEntry[])
+      })
+      .catch(() => {
+        /* Use the localized labels below. */
+      })
+    return () => {
+      active = false
     }
-    fetchUserTypes()
   }, [])
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="h-32 animate-pulse rounded-xl bg-muted"
-          />
-        ))}
-      </div>
-    )
-  }
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {userTypes.map((userType) => {
-        const route = USER_TYPE_ROUTES[userType.key] || "#"
-        const icon = USER_TYPE_ICONS[userType.key] || <User className="h-8 w-8" />
-
-        return (
-          <Link key={userType.id} href={route} className="block">
-            <Card className="h-full cursor-pointer transition-all hover:shadow-md hover:border-primary/50 hover:bg-primary/5">
-              <CardContent className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-                <div className="text-primary">{icon}</div>
-                <h3 className="text-lg font-semibold">
-                  {t(
-                    { en: userType.label_en, ar: userType.label_ar },
-                    lang
-                  )}
-                </h3>
-              </CardContent>
-            </Card>
-          </Link>
-        )
-      })}
-    </div>
+    <section
+      className={styles.landing}
+      dir={ar ? "rtl" : "ltr"}
+      aria-labelledby="registration-title"
+    >
+      <div className={styles.landscape} aria-hidden="true" />
+      <header className={styles.intro}>
+        <p className={styles.eyebrow}>
+          {ar ? "انضم إلى مجتمعنا" : "JOIN OUR COMMUNITY"}
+        </p>
+        <h1 id="registration-title">
+          {ar ? "ابدأ رحلتك مع DSC" : "Start Your Journey with DSC"}
+        </h1>
+        <p className={styles.subtitle}>
+          {ar
+            ? "أنشئ حساباً يناسب دورك للوصول إلى برامجنا وفعالياتنا ومواردنا، والحصول على الدعم الذي يلبي احتياجاتك."
+            : "Create an account that matches your role and get access to our programmes, events, resources and support tailored to your needs."}
+        </p>
+      </header>
+      <div className={styles.roles}>
+        {registrationRoles.map((role) => {
+          const lookup = userTypes.find((entry) => entry.key === role.key)
+          const label =
+            (ar ? lookup?.label_ar : lookup?.label_en) || role.name[lang]
+          const registerLabel = ar
+            ? `التسجيل ${role.registerAs}`
+            : `Register as ${label}`
+          return (
+            <article
+              key={role.key}
+              className={`${styles.role} ${styles[role.key]}`}
+            >
+              <Image
+                className={styles.photo}
+                src={`/images/register/${role.key}.webp`}
+                width={740}
+                height={306}
+                alt={role.imageAlt[lang]}
+                priority
+              />
+              <div className={styles.body}>
+                <h2>{label}</h2>
+                <p className={styles.description}>{role.description[lang]}</p>
+                <div className={styles.journeyHeading}>
+                  <h3>{ar ? "رحلتك معنا" : "Your Journey"}</h3>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button
+                        className={styles.details}
+                        aria-label={
+                          ar
+                            ? `عرض تفاصيل رحلة ${label}`
+                            : `View ${label} journey details`
+                        }
+                      >
+                        {ar ? "عرض التفاصيل" : "View Details"}
+                        <ArrowRight size={16} />
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent
+                      className={styles.dialog}
+                      dir={ar ? "rtl" : "ltr"}
+                    >
+                      <DialogHeader>
+                        <DialogTitle className={styles.dialogTitle}>
+                          {ar
+                            ? `رحلتك معنا: ${label}`
+                            : `Your Journey: ${label}`}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {role.description[lang]}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <ol className={styles.detailSteps}>
+                        {role.steps.map((step, index) => (
+                          <li key={step.en}>
+                            <span>{index + 1}</span>
+                            <div>
+                              <h3>
+                                {index === 0 ? (
+                                  <Link
+                                    className={styles.stepLink}
+                                    href={`/register/${role.key}`}
+                                  >
+                                    {step[lang]}
+                                  </Link>
+                                ) : (
+                                  step[lang]
+                                )}
+                              </h3>
+                              <p>{step.detail[lang]}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                      <Link
+                        className={`${styles.register} ${styles[role.key]}`}
+                        href={`/register/${role.key}`}
+                      >
+                        {registerLabel}
+                        <ArrowRight size={20} />
+                      </Link>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                <ol className={styles.steps}>
+                  {role.steps.map((step, index) => (
+                    <li key={step.en}>
+                      <span aria-hidden="true">{index + 1}</span>
+                      {index === 0 ? (
+                        <Link
+                          className={styles.stepLink}
+                          href={`/register/${role.key}`}
+                        >
+                          {step[lang]}
+                        </Link>
+                      ) : (
+                        <span>{step[lang]}</span>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+                <Link
+                  className={styles.register}
+                  href={`/register/${role.key}`}
+                >
+                  {registerLabel}
+                  <ArrowRight size={21} />
+                </Link>
+              </div>
+            </article>
+          )
+        })}
+      </div>
+      <p className={styles.login}>
+        {ar ? "لديك حساب بالفعل؟" : "Already have an account?"}{" "}
+        <Link href="/login">{ar ? "تسجيل الدخول" : "Log in"}</Link>
+      </p>
+    </section>
   )
 }

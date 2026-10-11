@@ -1,16 +1,13 @@
-"use client"
 import { HeroSection } from "@/components/landing/HeroSection"
-import { ServiceJourney } from "@/components/landing/ServiceJourney"
 import { PortalDiscovery } from "@/components/landing/PortalDiscovery"
+import { getTeamExperts } from "@/lib/team-experts"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const experts = await getTeamExperts({ all: true })
   return (
     <div className="flex min-h-screen flex-col">
       {/* 1. Hero Section */}
-      <HeroSection />
-
-      {/* 2. Service Journey */}
-      <ServiceJourney />
+      <HeroSection experts={experts} />
 
       {/* 3. Portal Discovery */}
       <PortalDiscovery />

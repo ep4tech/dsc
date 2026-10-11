@@ -1,0 +1,399 @@
+.stepLink {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.stepLink:hover {
+  color: #006bc7;
+}
+.stepLink:focus-visible {
+  outline: 2px solid #006bc7;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.landing {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: calc(100vh - 76px);
+  padding: 26px 2.25% 18px;
+  color: #071951;
+  background:
+    radial-gradient(ellipse at 1% 35%, #dff7f7 0, transparent 39%),
+    linear-gradient(112deg, #f0faff, #eff6ff 55%, #f7fafb);
+  font-family: "Mohammad Bold Art", Arial, Tahoma, sans-serif;
+}
+.landing::before,
+.landing::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: #abe0f6;
+  opacity: 0.24;
+}
+.landing::before {
+  width: 245px;
+  height: 245px;
+  left: -35px;
+  top: 0;
+}
+.landing::after {
+  width: 540px;
+  height: 540px;
+  left: -195px;
+  top: 50px;
+}
+.landscape {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  top: 0;
+  width: min(35vw, 560px);
+  height: 245px;
+  background: url("/images/register/journey.webp") top right / cover no-repeat;
+  mask-image:
+    linear-gradient(to bottom, black 62%, transparent),
+    linear-gradient(to right, transparent, black 28%);
+  mask-composite: intersect;
+}
+.intro {
+  text-align: center;
+  position: relative;
+  max-width: 950px;
+  margin: 0 auto 13px;
+}
+.eyebrow {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: #526797;
+  margin: 0 0 4px;
+}
+.intro h1 {
+  font-size: clamp(30px, 2.9vw, 49px);
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  margin: 0 0 7px;
+  color: #05164f;
+}
+.subtitle {
+  max-width: 750px;
+  margin: auto;
+  font-size: 18px;
+  line-height: 1.35;
+  color: #586c94;
+}
+.roles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 11px;
+  max-width: 1680px;
+  margin: auto;
+}
+.parent {
+  --role-color: #008043;
+  --role-tint: #f3fbf1;
+  --step-tint: #b5e8c6;
+  --step-ink: #075d35;
+}
+.individual {
+  --role-color: #006fee;
+  --role-tint: #f2f8ff;
+  --step-tint: #b8dcff;
+  --step-ink: #07367f;
+}
+.organization {
+  --role-color: #6500be;
+  --role-tint: #f7f1ff;
+  --step-tint: #ddbbff;
+  --step-ink: #520098;
+}
+.expert {
+  --role-color: #a96c00;
+  --role-tint: #fffaf0;
+  --step-tint: #ffe2a0;
+  --step-ink: #855100;
+}
+.role {
+  min-width: 0;
+  padding: 11px 12px 15px;
+  border: 1px solid #ffffff;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffffed 0, var(--role-tint) 58%);
+  box-shadow: 0 6px 24px #477aad06;
+  display: flex;
+  flex-direction: column;
+}
+.photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2.42;
+  object-fit: cover;
+  border-radius: 7px;
+}
+.body {
+  padding: 8px 7px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.body h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+  margin: 0 0 5px;
+}
+.description {
+  color: #53658e;
+  font-size: 16px;
+  line-height: 1.35;
+  margin: 0 0 10px;
+  min-height: 65px;
+}
+.journeyHeading {
+  border-top: 1px solid #38578512;
+  padding-top: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.journeyHeading h3 {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.details {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #0065d7;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 3px 0;
+}
+.details:hover {
+  text-decoration: underline;
+}
+.details:focus-visible,
+.register:focus-visible,
+.login a:focus-visible {
+  outline: 3px solid #0b5799;
+  outline-offset: 4px;
+}
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+  display: grid;
+  gap: 4px;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  color: #50638f;
+  font-size: 15px;
+  line-height: 1.25;
+  min-height: 29px;
+}
+.steps li > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--step-tint);
+  color: var(--step-ink);
+  font-weight: 650;
+  font-size: 17px;
+}
+.register {
+  background: var(--role-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 47px;
+  border-radius: 28px;
+  margin-top: auto;
+  font-size: 16px;
+  font-weight: 650;
+  text-align: center;
+  padding: 10px 12px;
+  transition:
+    filter 0.15s,
+    transform 0.15s;
+}
+.register:hover {
+  filter: brightness(0.91);
+  transform: translateY(-1px);
+}
+.landing[dir="rtl"] svg,
+.dialog[dir="rtl"] a svg {
+  transform: rotate(180deg);
+}
+.landing[dir="rtl"] .eyebrow {
+  letter-spacing: 0;
+}
+.login {
+  position: relative;
+  text-align: center;
+  color: #53658e;
+  margin: 15px 0 0;
+  font-size: 13px;
+}
+.login a {
+  color: #0061c4;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-inline-start: 4px;
+}
+.dialog {
+  max-width: min(620px, calc(100% - 32px));
+  max-height: 88dvh;
+  overflow-y: auto;
+  padding: 28px;
+  color: #071951;
+  background: #fff;
+}
+.dialogTitle {
+  font-size: 24px;
+  line-height: 1.25;
+  padding-inline-end: 20px;
+  font-weight: 700;
+}
+.detailSteps {
+  list-style: none;
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  margin: 3px 0 8px;
+}
+.detailSteps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.detailSteps li > span {
+  display: grid;
+  place-items: center;
+  background: #e8f2ff;
+  border-radius: 50%;
+  width: 29px;
+  height: 29px;
+  flex-shrink: 0;
+  font-weight: 650;
+}
+.detailSteps h3 {
+  font-size: 15px;
+  font-weight: 650;
+}
+.detailSteps p {
+  font-size: 14px;
+  color: #53658e;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+@media (min-width: 1600px) {
+  .landing {
+    padding-top: 27px;
+  }
+  .intro {
+    margin-bottom: 13px;
+  }
+  .subtitle {
+    font-size: 19px;
+  }
+  .steps {
+    gap: 4px;
+  }
+  .steps li {
+    min-height: 29px;
+  }
+}
+@media (max-width: 1250px) {
+  .roles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    max-width: 1000px;
+  }
+  .intro {
+    margin-bottom: 25px;
+  }
+  .landing {
+    padding: 30px 24px 24px;
+  }
+  .description {
+    min-height: 44px;
+  }
+  .photo {
+    aspect-ratio: 2.6;
+  }
+  .steps li {
+    gap: 18px;
+  }
+  .landscape {
+    opacity: 0.55;
+  }
+}
+@media (max-width: 620px) {
+  .roles {
+    grid-template-columns: 1fr;
+    max-width: 430px;
+    gap: 18px;
+  }
+  .landing {
+    padding: 26px 16px 20px;
+  }
+  .intro h1 {
+    font-size: 32px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    margin-bottom: 9px;
+  }
+  .subtitle {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .description {
+    min-height: 0;
+  }
+  .body {
+    padding: 10px 6px 0;
+  }
+  .steps li {
+    min-height: 31px;
+  }
+  .landscape {
+    width: 75%;
+    height: 220px;
+    opacity: 0.25;
+  }
+  .dialog {
+    padding: 24px 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .register {
+    transition: none;
+  }
+}
+
+.dialog {
+  font-family: "Mohammad Bold Art", Arial, Tahoma, sans-serif;
+}
+.landing[dir="rtl"],
+.dialog[dir="rtl"] {
+  font-family: "Mohammad Bold Art", Tahoma, Arial, sans-serif;
+}

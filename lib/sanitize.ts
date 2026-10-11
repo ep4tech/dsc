@@ -1,16 +1,48 @@
-// lib/sanitizeCmsContent.js
+import sanitizeHtml from "sanitize-html"
 
 export function sanitizeCmsContent(html: string, lang?: string): string {
-  let out = html
-    .replace(/<figure([^>]*?)style="[^"]*?"([^>]*?)>/gi, "<figure$1$2>")
-    .replace(/<iframe([^>]*?)style="[^"]*?"([^>]*?)>/gi, "<iframe$1$2>")
-
-  if (lang === "ar") {
-    // Remove hard-coded LTR direction so the page's RTL direction applies
-    out = out.replace(/dir="ltr"/gi, "")
-    // Flip text alignment baked in while the editor was in LTR mode
-    out = out.replace(/text-align:\s*left/gi, "text-align: right")
-  }
-
-  return out
+  const clean = sanitizeHtml(html, {
+    allowedTags: [
+      ...sanitizeHtml.defaults.allowedTags,
+      "img",
+      "figure",
+      "figcaption",
+      "iframe",
+    ],
+    allowedAttributes: {
+      "*": ["class", "dir", "style"],
+      a: ["href", "name", "target", "rel"],
+      img: ["src", "alt", "width", "height"],
+      iframe: ["src", "width", "height", "allowfullscreen", "title"],
+      td: ["colspan", "rowspan"],
+      th: ["colspan", "rowspan"],
+    },
+    allowedIframeHostnames: [
+      "www.youtube.com",
+      "www.youtube-nocookie.com",
+      "player.vimeo.com",
+    ],
+    allowedSchemes: ["http", "https", "mailto", "tel"],
+    allowProtocolRelative: false,
+    allowedStyles: {
+      "*": {
+        "text-align": [/^(left|right|center|justify)$/],
+        color: [/^#[0-9a-f]{3,8}$/i, /^[a-z]+$/i],
+        "background-color": [/^#[0-9a-f]{3,8}$/i, /^[a-z]+$/i],
+        "font-size": [/^\d+(px|em|rem|%)$/],
+        "font-weight": [/^(normal|bold|[1-9]00)$/],
+      },
+    },
+    transformTags: {
+      a: (tagName, attribs) => ({
+        tagName,
+        attribs: { ...attribs, rel: "noopener noreferrer" },
+      }),
+    },
+  })
+  return lang === "ar"
+    ? clean
+        .replace(/dir="ltr"/gi, "")
+        .replace(/text-align:\s*left/gi, "text-align:right")
+    : clean
 }

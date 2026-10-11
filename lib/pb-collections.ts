@@ -1,3 +1,4 @@
+import { boundedFullList } from "@/lib/bounded-records"
 import pb from "./pb"
 import type { User } from "@/types/user"
 import type { Profile } from "@/types/profile"
@@ -46,7 +47,7 @@ function transformToolToDB(tool: Partial<Tool>): Record<string, unknown> {
 
 export const toolsCollection = {
   async getAll(): Promise<Tool[]> {
-    const data = await pb.collection("tools").getFullList()
+    const data = await boundedFullList(pb.collection("tools"))
     return data.map(transformToolFromDB)
   },
 
@@ -72,14 +73,14 @@ export const toolsCollection = {
   },
 
   async getByType(type: string): Promise<Tool[]> {
-    const data = await pb.collection("tools").getFullList({
-      filter: `type = "${type}"`,
+    const data = await boundedFullList(pb.collection("tools"), {
+      filter: pb.filter("type = {:value0}", { value0: type }),
     })
     return data.map(transformToolFromDB)
   },
 
   async getActive(): Promise<Tool[]> {
-    const data = await pb.collection("tools").getFullList({
+    const data = await boundedFullList(pb.collection("tools"), {
       filter: `status = "active"`,
     })
     return data.map(transformToolFromDB)
@@ -88,7 +89,7 @@ export const toolsCollection = {
 
 export const casesCollection = {
   async getAll(): Promise<Profile[]> {
-    return pb.collection("cases").getFullList({
+    return boundedFullList(pb.collection("cases"), {
       expand: "user",
     })
   },
@@ -145,20 +146,20 @@ export const casesCollection = {
   },
 
   async getByUser(userId: string): Promise<Profile[]> {
-    return pb.collection("cases").getFullList({
-      filter: `user = "${userId}"`,
+    return boundedFullList(pb.collection("cases"), {
+      filter: pb.filter("user = {:value0}", { value0: userId }),
     })
   },
 
   async getByIds(ids: string[]): Promise<Profile[]> {
     if (ids.length === 0) return []
-    const filter = ids.map((id) => `id = "${id}"`).join(" || ")
-    return pb.collection("cases").getFullList({ filter, expand: "user" })
+    const filter = ids.map((id) => pb.filter("id = {:value0}", { value0: id })).join(" || ")
+    return boundedFullList(pb.collection("cases"), { filter, expand: "user" })
   },
 
   async getByProgram(programId: string): Promise<Profile[]> {
-    return pb.collection("cases").getFullList({
-      filter: `program_id = "${programId}"`,
+    return boundedFullList(pb.collection("cases"), {
+      filter: pb.filter("program_id = {:value0}", { value0: programId }),
     })
   },
 
@@ -166,8 +167,8 @@ export const casesCollection = {
     programId: string,
     serviceType: string
   ): Promise<Profile[]> {
-    return pb.collection("cases").getFullList({
-      filter: `program_id = "${programId}" && service_type = "${serviceType}"`,
+    return boundedFullList(pb.collection("cases"), {
+      filter: pb.filter("program_id = {:value0} && service_type = {:value1}", { value0: programId, value1: serviceType }),
     })
   },
 
@@ -175,15 +176,15 @@ export const casesCollection = {
     programId: string,
     portalType: string
   ): Promise<Profile[]> {
-    return pb.collection("cases").getFullList({
-      filter: `program_id = "${programId}" && portal_type = "${portalType}"`,
+    return boundedFullList(pb.collection("cases"), {
+      filter: pb.filter("program_id = {:value0} && portal_type = {:value1}", { value0: programId, value1: portalType }),
     })
   },
 }
 
 export const caseToolsCollection = {
   async getAll(): Promise<CaseTool[]> {
-    return pb.collection("case_tools").getFullList()
+    return boundedFullList(pb.collection("case_tools"))
   },
 
   async getById(id: string): Promise<CaseTool> {
@@ -252,20 +253,20 @@ export const caseToolsCollection = {
   },
 
   async getByCase(caseId: string): Promise<CaseTool[]> {
-    return pb.collection("case_tools").getFullList({
-      filter: `case = "${caseId}"`,
+    return boundedFullList(pb.collection("case_tools"), {
+      filter: pb.filter("case = {:value0}", { value0: caseId }),
     })
   },
 
   async getByTool(toolId: string): Promise<CaseTool[]> {
-    return pb.collection("case_tools").getFullList({
-      filter: `tool = "${toolId}"`,
+    return boundedFullList(pb.collection("case_tools"), {
+      filter: pb.filter("tool = {:value0}", { value0: toolId }),
     })
   },
 
   async getVisibleToUser(caseId: string): Promise<CaseTool[]> {
-    return pb.collection("case_tools").getFullList({
-      filter: `case = "${caseId}" && is_visible_to_user = true`,
+    return boundedFullList(pb.collection("case_tools"), {
+      filter: pb.filter("case = {:value0} && is_visible_to_user = true", { value0: caseId }),
     })
   },
 }
@@ -293,7 +294,7 @@ const toolTypesCacheById: Map<string, ToolTypeRecord> = new Map()
 export const toolTypesCollection = {
   async getAll(): Promise<ToolTypeRecord[]> {
     try {
-      const data = await pb.collection("lookups").getFullList({
+      const data = await boundedFullList(pb.collection("lookups"), {
         filter: 'type = "tool_types"',
       })
 
@@ -308,7 +309,7 @@ export const toolTypesCollection = {
 
       return records
     } catch {
-      const data = await pb.collection("tool_types").getFullList()
+      const data = await boundedFullList(pb.collection("tool_types"))
       const records = data.map((type) => ({
         id: type.id,
         key: type.name,
@@ -338,7 +339,7 @@ export const toolTypesCollection = {
     try {
       const type = await pb
         .collection("lookups")
-        .getFirstListItem(`type = "tool_types" && key = "${name}"`)
+        .getFirstListItem(pb.filter("type = \"tool_types\" && key = {:value0}", { value0: name }))
       const record = transformLookupToolType(
         type as unknown as Record<string, unknown>
       )
@@ -349,7 +350,7 @@ export const toolTypesCollection = {
       try {
         const type = await pb
           .collection("tool_types")
-          .getFirstListItem(`name = "${name}"`)
+          .getFirstListItem(pb.filter("name = {:value0}", { value0: name }))
         const record = {
           id: type.id,
           key: type.name,
@@ -414,7 +415,7 @@ export const infoPagesCollection = {
     try {
       const data = await pb
         .collection("info_pages")
-        .getFirstListItem(`slug = "${slug}"`)
+        .getFirstListItem(pb.filter("slug = {:value0}", { value0: slug }))
       return data as unknown as InfoPage
     } catch {
       return null
@@ -425,7 +426,7 @@ export const infoPagesCollection = {
     try {
       const data = await pb
         .collection("info_pages")
-        .getFirstListItem(`slug = "${slug}" && is_published = true`)
+        .getFirstListItem(pb.filter("slug = {:value0} && is_published = true", { value0: slug }))
       return data as unknown as InfoPage
     } catch {
       return null
@@ -433,15 +434,15 @@ export const infoPagesCollection = {
   },
 
   async getAll(): Promise<InfoPage[]> {
-    const data = await pb.collection("info_pages").getFullList({
+    const data = await boundedFullList(pb.collection("info_pages"), {
       sort: "order",
     })
     return data as unknown as InfoPage[]
   },
 
   async getByPortal(portalId: string): Promise<InfoPage[]> {
-    const data = await pb.collection("info_pages").getFullList({
-      filter: `portal_name = "${portalId}"`,
+    const data = await boundedFullList(pb.collection("info_pages"), {
+      filter: pb.filter("portal_name = {:value0}", { value0: portalId }),
       sort: "order",
     })
     return data as unknown as InfoPage[]
@@ -455,9 +456,8 @@ export const infoPagesCollection = {
     content_en?: string
   }): Promise<InfoPage> {
 
-    const count = await pb
-      .collection("info_pages")
-      .getFullList({ filter: `portal_name = "${data.portal_name || ""}"` })
+    const count = await boundedFullList(pb
+      .collection("info_pages"), { filter: pb.filter("portal_name = {:value0}", { value0: data.portal_name || "" }) })
 
     const lorem =
       "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p><p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>"
@@ -546,7 +546,7 @@ export const homePagesCollection = {
     try {
       const data = await pb
         .collection("home_pages")
-        .getFirstListItem(`slug = "${slug}"`)
+        .getFirstListItem(pb.filter("slug = {:value0}", { value0: slug }))
       return data as unknown as HomePage
     } catch {
       return null
@@ -557,7 +557,7 @@ export const homePagesCollection = {
     try {
       const data = await pb
         .collection("home_pages")
-        .getFirstListItem(`slug = "${slug}" && is_published = true`)
+        .getFirstListItem(pb.filter("slug = {:value0} && is_published = true", { value0: slug }))
       return data as unknown as HomePage
     } catch {
       return null
@@ -628,11 +628,11 @@ export const homePagesCollection = {
   },
 }
 
-function extractAuthorFromRecord(record: any): string {
+function extractAuthorFromRecord(record: Record<string, unknown>): string {
   return (record.author_name as string) || ""
 }
 
-function extractThumbnail(record: any): string {
+function extractThumbnail(record: Record<string, unknown>): string {
   const t = record.thumbnail
   if (!t) return ""
   if (Array.isArray(t)) return t[0] || ""
@@ -641,7 +641,7 @@ function extractThumbnail(record: any): string {
 
 export const blogPagesCollection = {
   async getAll(): Promise<BlogPage[]> {
-    const data = await pb.collection("blog_pages").getFullList({
+    const data = await boundedFullList(pb.collection("blog_pages"), {
       sort: "-created",
     })
     return data.map((item) => {
@@ -668,7 +668,7 @@ export const blogPagesCollection = {
     try {
       const data = await pb
         .collection("blog_pages")
-        .getFirstListItem(`slug = "${slug}"`)
+        .getFirstListItem(pb.filter("slug = {:value0}", { value0: slug }))
       const author_name = extractAuthorFromRecord(data)
       return {
         id: data.id as string,
@@ -694,7 +694,7 @@ export const blogPagesCollection = {
     try {
       const data = await pb
         .collection("blog_pages")
-        .getFirstListItem(`slug = "${slug}" && is_published = true`)
+        .getFirstListItem(pb.filter("slug = {:value0} && is_published = true", { value0: slug }))
       const author_name = extractAuthorFromRecord(data)
       return {
         id: data.id as string,
@@ -838,7 +838,7 @@ export const blogPagesCollection = {
 
 export const blogCategoriesCollection = {
   async getAll(): Promise<BlogCategory[]> {
-    const data = await pb.collection("blog_categories").getFullList({
+    const data = await boundedFullList(pb.collection("blog_categories"), {
       sort: "key",
     })
     return data.map((item) => ({
@@ -883,21 +883,21 @@ export const blogCategoriesCollection = {
 
 export const caseExpertsCollection = {
   async getAll(): Promise<import("@/types/allocation").CaseExpert[]> {
-    return pb.collection("case_experts").getFullList({
+    return boundedFullList(pb.collection("case_experts"), {
       expand: "expert_id",
     })
   },
 
   async getByCase(caseId: string): Promise<import("@/types/allocation").CaseExpert[]> {
-    return pb.collection("case_experts").getFullList({
-      filter: `case_id = "${caseId}"`,
+    return boundedFullList(pb.collection("case_experts"), {
+      filter: pb.filter("case_id = {:value0}", { value0: caseId }),
       expand: "expert_id",
     })
   },
 
   async getByExpert(expertId: string): Promise<import("@/types/allocation").CaseExpert[]> {
-    return pb.collection("case_experts").getFullList({
-      filter: `expert_id = "${expertId}"`,
+    return boundedFullList(pb.collection("case_experts"), {
+      filter: pb.filter("expert_id = {:value0}", { value0: expertId }),
       expand: "case_id",
     })
   },
@@ -939,7 +939,7 @@ export const caseExpertsCollection = {
 
 export const rolesManagementCollection = {
   async getAll(): Promise<import("@/types/expert-role").RolesManagement[]> {
-    return pb.collection("roles_management").getFullList({
+    return boundedFullList(pb.collection("roles_management"), {
       expand: "tool_types",
     })
   },
@@ -977,7 +977,7 @@ export const rolesManagementCollection = {
     try {
       const record = await pb
         .collection("roles_management")
-        .getFirstListItem(`role_name_en = "${roleNameEn}"`, {
+        .getFirstListItem(pb.filter("role_name_en = {:value0}", { value0: roleNameEn }), {
           expand: "tool_types",
         })
       return record as unknown as import("@/types/expert-role").RolesManagement
@@ -993,8 +993,8 @@ export async function renameRoleInAllocations(
   newNameEn: string
 ): Promise<void> {
   if (!oldNameEn || !newNameEn || oldNameEn === newNameEn) return
-  const records = await pb.collection("case_experts").getFullList({
-    filter: `role = "${oldNameEn.replace(/"/g, '\\"')}"`,
+  const records = await boundedFullList(pb.collection("case_experts"), {
+    filter: pb.filter("role = {:value0}", { value0: oldNameEn }),
   })
   await Promise.all(
     records.map((record) =>

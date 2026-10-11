@@ -1,0 +1,12 @@
+// Local-only reconstruction of fields needed by the case and project modules.
+migrate((app)=>{
+ const add=(name,fields)=>{const c=app.findCollectionByNameOrId(name);for(const f of fields){if(c.fields.getByName(f.name)) c.fields.removeByName(f.name);const constructors={text:TextField,json:JSONField,bool:BoolField,number:NumberField,relation:RelationField,file:FileField};c.fields.add(new constructors[f.type](f));}app.save(c);return c};
+ const texts=(names)=>names.split(' ').map(name=>({name,type:'text'}));
+ const users=app.findCollectionByNameOrId('users');const cases=app.findCollectionByNameOrId('cases');const lookups=app.findCollectionByNameOrId('lookups');
+ add('cases',[...texts('date_of_birth gender grade relationship notes category sub_category service_type portal_type training_link program_id program_status payment_reject_reason'),{name:'case_details',type:'json'},{name:'user_details',type:'json'},{name:'is_paid',type:'bool'},{name:'payment_amount',type:'number'},{name:'payment_slip',type:'file',maxSelect:1,protected:true}]);
+ const allocations=add('case_experts',[{name:'case_id',type:'relation',collectionId:cases.id,maxSelect:1,required:true},{name:'expert_id',type:'relation',collectionId:users.id,maxSelect:1,required:true},...texts('role')]);allocations.fields.removeByName('user');app.save(allocations);
+ const tasks=add('case_tools',[{name:'case',type:'relation',collectionId:cases.id,maxSelect:1,required:true},{name:'type',type:'relation',collectionId:lookups.id,maxSelect:1,required:true},...texts('name_en name_ar assigned_at'),{name:'config',type:'json'},{name:'responses',type:'json'},{name:'is_visible_to_user',type:'bool'},{name:'is_not_template',type:'bool'},{name:'media',type:'file',maxSelect:20,protected:true}]);tasks.fields.removeByName('user');app.save(tasks);
+ const roles=add('roles_management',[...texts('role_name_en role_name_ar'),{name:'tool_types',type:'relation',collectionId:lookups.id,maxSelect:30}]);roles.fields.removeByName('user');app.save(roles);
+ const tools=add('tools',[...texts('name_en name_ar description type serviceType'),{name:'config',type:'json'}]);tools.fields.removeByName('user');app.save(tools);
+ for(const [key,en,ar] of [['plan','Plan','خطة'],['report','Report','تقرير'],['survey','Survey','استبيان'],['attachment_request','Attachment request','طلب مرفقات']]){const r=new Record(lookups);r.set('type','tool_types');r.set('key',key);r.set('label_en',en);r.set('label_ar',ar);app.save(r);}
+},()=>{});

@@ -1,21 +1,23 @@
-import type { BilingualString, Lang } from "@/types/form";
+import type { BilingualString, Lang } from "@/types/form"
 
 export function t(text: BilingualString, lang: Lang): string {
-  return text[lang];
+  return text[lang]
 }
 
 export function dir(lang: Lang): "ltr" | "rtl" {
-  return lang === "ar" ? "rtl" : "ltr";
+  return lang === "ar" ? "rtl" : "ltr"
 }
 
-export function localizedField<T extends Record<string, any>>(
+export function localizedField<T extends object>(
   item: T,
   lang: Lang,
   field: string
 ): string {
-  const val = item[`${field}_${lang}`]
-  if (val) return val
-  return item[`${field}_en`] || ""
+  const fields = item as Record<string, unknown>
+  const val = fields[`${field}_${lang}`]
+  if (typeof val === "string" && val) return val
+  const fallback = fields[`${field}_en`]
+  return typeof fallback === "string" ? fallback : ""
 }
 
 export const UI_STRINGS: Record<string, BilingualString> = {
@@ -73,7 +75,6 @@ export const UI_STRINGS: Record<string, BilingualString> = {
     en: "Client Intake Form",
     ar: "استمارة استقبال العملاء",
   },
-};
+}
 
-export { formatDate } from "./format-date";
-
+export { formatDate } from "./format-date"

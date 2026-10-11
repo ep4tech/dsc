@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { getPortalById } from "@/lib/portals"
+import { usePortals } from "@/hooks/usePortals"
 import { infoPagesCollection } from "@/lib/pb-collections"
 import pb, { getErrorMessage } from "@/lib/pb"
 import type { InfoPage } from "@/types/cms"
@@ -77,6 +77,8 @@ async function resizeIconToSquare(file: File, size = 256): Promise<File> {
 
 export default function CmsServiceEditorPage() {
   const { lang } = useLang()
+  const { portals: PORTALS } = usePortals()
+  const getPortalById = (id: string) => PORTALS.find((portal) => portal.id === id)
   const BackIcon = lang === "ar" ? ArrowRight : ArrowLeft
   const params = useParams()
   const router = useRouter()

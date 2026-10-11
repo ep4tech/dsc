@@ -23,11 +23,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDate } from "@/lib/format-date"
 import { t } from "@/lib/i18n"
 import { useLang } from "@/lib/lang-context"
-import { ageGroupLabel, consultationModeLabel } from "@/lib/expert-options"
 import {
-  degreeLabel,
-  specializationLabel,
-} from "@/components/team/team-labels"
+  ageGroupLabel,
+  consultationModeLabel,
+  countryLabel,
+} from "@/lib/expert-options"
+import { degreeLabel, specializationLabel } from "@/components/team/team-labels"
 import {
   dash,
   EMPTY_DASH,
@@ -88,7 +89,7 @@ export function ExpertProfileView({
   const degree = text(profile?.highest_academic_degree)
   const consultationMode = text(profile?.consultation_mode)
   const city = text(profile?.city)
-  const country = text(profile?.country_of_residence)
+  const country = countryLabel(text(profile?.country_of_residence), lang)
   const whatsapp = text(profile?.whatsapp_number)
   const whatsappCode = text(profile?.whatsapp_country_code)
   const location = [city, country].filter(Boolean).join(", ")
@@ -100,8 +101,7 @@ export function ExpertProfileView({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-primary">
-              {title ??
-                t({ en: "My Profile", ar: "ملفي الشخصي" }, lang)}
+              {title ?? t({ en: "My Profile", ar: "ملفي الشخصي" }, lang)}
             </h1>
             <p className="text-muted-foreground">
               {subtitle ??
@@ -142,7 +142,7 @@ export function ExpertProfileView({
           <>
             <span className="inline-flex items-center gap-1.5">
               <Mail className="h-3.5 w-3.5" />
-              {email}
+              <bdi dir="ltr">{email}</bdi>
             </span>
             {location && (
               <>
@@ -183,9 +183,15 @@ export function ExpertProfileView({
       {/* Contact */}
       <SectionCard
         icon={UserIcon}
-        title={t({ en: "Personal & Contact", ar: "البيانات الشخصية والتواصل" }, lang)}
+        title={t(
+          { en: "Personal & Contact", ar: "البيانات الشخصية والتواصل" },
+          lang
+        )}
         description={t(
-          { en: "How clients can reach you", ar: "كيف يمكن للعملاء التواصل معك" },
+          {
+            en: "How clients can reach you",
+            ar: "كيف يمكن للعملاء التواصل معك",
+          },
           lang
         )}
       >
@@ -193,7 +199,7 @@ export function ExpertProfileView({
           icon={Mail}
           label={t({ en: "Email", ar: "البريد الإلكتروني" }, lang)}
         >
-          {email}
+          <bdi dir="ltr">{email}</bdi>
         </InfoRow>
         <InfoRow
           icon={Globe}
@@ -203,7 +209,7 @@ export function ExpertProfileView({
         </InfoRow>
         <InfoRow
           icon={MapPin}
-          label={t({ en: "City", ar: "المدينة" }, lang)}
+          label={t({ en: "City of Residence", ar: "مدينة الإقامة" }, lang)}
         >
           {dash(city)}
         </InfoRow>
@@ -263,7 +269,10 @@ export function ExpertProfileView({
       >
         <InfoRow
           icon={UserIcon}
-          label={t({ en: "Field of Service Provision", ar: "مجال تقديم الخدمات" }, lang)}
+          label={t(
+            { en: "Field of Service Provision", ar: "مجال تقديم الخدمات" },
+            lang
+          )}
         >
           {specializationLabels.length > 0 ? (
             specializationLabels.join(", ")
@@ -285,7 +294,9 @@ export function ExpertProfileView({
           icon={Globe}
           label={t({ en: "Consultation Mode", ar: "وضع الاستشارة" }, lang)}
         >
-          {consultationMode ? consultationModeLabel(consultationMode, lang) : EMPTY_DASH}
+          {consultationMode
+            ? consultationModeLabel(consultationMode, lang)
+            : EMPTY_DASH}
         </InfoRow>
         <InfoRow
           icon={Wallet}
@@ -332,15 +343,17 @@ export function ExpertProfileView({
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <MessageSquareText className="h-4 w-4" />
             </span>
-            <CardTitle>
-              {t({ en: "About Me", ar: "نبذة عني" }, lang)}
-            </CardTitle>
+            <CardTitle>{t({ en: "About Me", ar: "نبذة عني" }, lang)}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
-          {text(profile?.bio).trim() ? (
+          {text(
+            lang === "ar" ? profile?.short_bio_ar : profile?.short_bio_en
+          ).trim() ? (
             <p className="text-sm leading-relaxed whitespace-pre-wrap">
-              {text(profile?.bio)}
+              {text(
+                lang === "ar" ? profile?.short_bio_ar : profile?.short_bio_en
+              )}
             </p>
           ) : (
             <div className="flex flex-col items-center gap-2 py-6 text-center">
@@ -348,8 +361,8 @@ export function ExpertProfileView({
               <p className="text-sm text-muted-foreground">
                 {t(
                   {
-                    en: "You have not added a message yet.",
-                    ar: "لم تقم بإضافة رسالة بعد.",
+                    en: "You have not added a short biography in this language yet.",
+                    ar: "لم تقم بإضافة نبذة قصيرة بهذه اللغة بعد.",
                   },
                   lang
                 )}
@@ -368,7 +381,10 @@ export function ExpertProfileView({
             rel="noopener noreferrer"
             className="hover:underline"
           >
-            {t({ en: "View full-size photo", ar: "عرض الصورة بالحجم الكامل" }, lang)}
+            {t(
+              { en: "View full-size photo", ar: "عرض الصورة بالحجم الكامل" },
+              lang
+            )}
           </a>
         </p>
       )}

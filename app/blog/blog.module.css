@@ -707,7 +707,7 @@
 }
 /* Keep Arabic text in the reference's clear sans-serif style. */
 .page[dir="rtl"] {
-  font-family: Tahoma, Arial, sans-serif;
+  font-family: "Mohammad Bold Art", Tahoma, Arial, sans-serif;
 }
 .page[dir="rtl"] .readButton {
   align-self: flex-end;

@@ -3,16 +3,17 @@
 import Link from "next/link"
 import { t } from "@/lib/i18n"
 import { useLang } from "@/lib/lang-context"
-import { PORTALS } from "@/lib/portals"
+import { usePortals } from "@/hooks/usePortals"
 import Image from "next/image"
 
 export function FooterSection() {
   const { lang } = useLang()
+  const { portals: PORTALS } = usePortals()
 
   return (
     <footer id="contact" className="scroll-mt-16" style={{ backgroundColor: "#0b1a30" }}>
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:py-4">
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 md:gap-x-8 md:gap-y-4">
+        <div className="grid grid-cols-1 gap-6 min-[480px]:grid-cols-2 md:grid-cols-3 md:gap-x-8 md:gap-y-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <Image src="/logo.svg" alt="DSC Logo" width={32} height={32} className="object-contain" />
@@ -32,48 +33,53 @@ export function FooterSection() {
             <div className="flex flex-wrap items-center gap-3">
               <a
                 href="https://wa.me/message/XGN76UVRTVL7C1"
+                aria-label="WhatsApp"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/60 hover:text-[#00a4e4] transition-colors text-base"
+                className="inline-flex h-11 w-11 items-center justify-center text-white/75 hover:text-[#00a4e4] transition-colors text-base md:h-auto md:w-auto"
               >
                 <i className="fab fa-whatsapp" />
               </a>
               <a
                 href="https://www.facebook.com/share/17cqyrgK7t/"
+                aria-label="Facebook"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/60 hover:text-[#00a4e4] transition-colors text-base"
+                className="inline-flex h-11 w-11 items-center justify-center text-white/75 hover:text-[#00a4e4] transition-colors text-base md:h-auto md:w-auto"
               >
                 <i className="fab fa-facebook-f" />
               </a>
               <a
                 href="https://www.instagram.com/drgeniusdsc?igsh=MXI2eHl5djJ2N2phbA=="
+                aria-label="Instagram"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/60 hover:text-[#00a4e4] transition-colors text-base"
+                className="inline-flex h-11 w-11 items-center justify-center text-white/75 hover:text-[#00a4e4] transition-colors text-base md:h-auto md:w-auto"
               >
                 <i className="fab fa-instagram" />
               </a>
               <a
                 href="https://x.com/DrGeniusDSC"
+                aria-label="X"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/60 hover:text-[#00a4e4] transition-colors text-base"
+                className="inline-flex h-11 w-11 items-center justify-center text-white/75 hover:text-[#00a4e4] transition-colors text-base md:h-auto md:w-auto"
               >
                 <i className="fab fa-twitter" />
               </a>
               <a
                 href="https://www.linkedin.com/in/radwan-abusaif-ab5089323?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+                aria-label="LinkedIn"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/60 hover:text-[#00a4e4] transition-colors text-base"
+                className="inline-flex h-11 w-11 items-center justify-center text-white/75 hover:text-[#00a4e4] transition-colors text-base md:h-auto md:w-auto"
               >
                 <i className="fab fa-linkedin-in" />
               </a>
             </div>
           </div>
 
-          <div className="hidden md:flex md:flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-2">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-start md:text-center text-white">
               {t({ en: "Main Portals", ar: "البوابات الرئيسية" }, lang)}
             </h3>
@@ -82,7 +88,7 @@ export function FooterSection() {
                 <Link
                   key={i}
                   href={`/portal/${portal.id}`}
-                  className="text-sm text-white/60 transition-colors hover:text-white"
+                  className="inline-flex min-h-11 items-center text-sm text-white/75 transition-colors hover:text-white md:min-h-0"
                 >
                   {t(portal.portalName, lang)}
                 </Link>

@@ -1,5 +1,7 @@
 "use client"
 
+
+import { boundedFullList } from "@/lib/bounded-records"
 import { useState, useCallback } from "react"
 import pb, { getErrorMessage } from "@/lib/pb"
 
@@ -24,8 +26,8 @@ export function useLookups() {
     setIsLoading(true)
     setError(null)
     try {
-      const filter = type ? `type = "${type}"` : ""
-      const data = await pb.collection("lookups").getFullList({
+      const filter = type ? pb.filter("type = {:type}", { type }) : ""
+      const data = await boundedFullList(pb.collection("lookups"), {
         filter: filter || undefined,
         sort: "created",
       })

@@ -1,0 +1,289 @@
+DSC PROJECT CHECK REPORT
+Generated: 2026-10-10T21:49:33.957442+00:00
+Project: D:\SysDir\MyDocument\ChatGPT\DSC\dsc
+Source files scanned: 318
+Findings: 45
+Severity counts: {'HIGH': 14, 'MEDIUM': 31}
+
+Scope: heuristic source review plus local diagnostics when enabled. Findings require human review.
+This is not a complete security audit or proof that the application is safe.
+No browser, live database, messaging, or deployment tests are run. Dependency CVEs are not checked.
+Environment files, generated assets, dependencies and database files are excluded.
+Code is not automatically repaired. Existing unit tests execute project code.
+
+FINDINGS
+1. [HIGH] [security] SEC005
+Position: app/api/contact/route.ts:13
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+2. [MEDIUM] [security] SEC006
+Position: app/api/contact/route.ts:13
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+3. [HIGH] [security] SEC005
+Position: app/api/expert-application/route.ts:12
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+4. [MEDIUM] [security] SEC006
+Position: app/api/expert-application/route.ts:12
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+5. [HIGH] [security] SEC005
+Position: app/api/send-email/route.ts:12
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+6. [MEDIUM] [security] SEC006
+Position: app/api/send-email/route.ts:12
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+7. [HIGH] [security] SEC005
+Position: app/api/send-message/route.ts:11
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+8. [MEDIUM] [security] SEC006
+Position: app/api/send-message/route.ts:11
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+9. [HIGH] [security] SEC005
+Position: app/api/telegram-notify/route.ts:9
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+10. [MEDIUM] [security] SEC006
+Position: app/api/telegram-notify/route.ts:9
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+11. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/allocations/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1024 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+12. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/assignments/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 670 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+13. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/cases/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1257 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+14. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/training/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1219 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+15. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/users/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 843 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+16. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/cases/[id]/tasks/[toolId]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+17. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/individual/cases/[id]/tasks/[toolId]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+18. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/institution/projects/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 689 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+19. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/institution/projects/[id]/tasks/[toolId]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+20. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/parent/cases/[id]/tasks/[toolId]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+21. [MEDIUM] [design] DESIGN002
+Position: app/programmes/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 729 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+22. [MEDIUM] [design] DESIGN002
+Position: app/programmes/training_programmes/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 763 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+23. [HIGH] [security] SEC001
+Position: components/cms/CmsContent.tsx:38
+Issue: HTML injection sink
+Confidence: review required
+Details: Trace the HTML to its source and verify robust sanitization before rendering. This sink alone does not prove XSS.
+
+24. [MEDIUM] [design] DESIGN002
+Position: components/dashboard/ExpertApproval.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 687 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+25. [MEDIUM] [design] DESIGN002
+Position: components/dashboard/UserManagement.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1012 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+26. [MEDIUM] [design] DESIGN002
+Position: components/expert/ExpertProfileEditor.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1048 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+27. [MEDIUM] [design] DESIGN002
+Position: components/register/ExpertApplicationForm.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1134 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+28. [MEDIUM] [design] DESIGN002
+Position: lib/pb-collections.ts:1
+Issue: Large module
+Confidence: review required
+Details: 1045 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+29. [HIGH] [security] SEC004
+Position: local-backend/1780000000_local_bootstrap.js:22
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+30. [HIGH] [security] SEC004
+Position: local-backend/1780000000_local_bootstrap.js:23
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+31. [HIGH] [security] SEC004
+Position: local-backend/1780000000_local_bootstrap.js:25
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+32. [HIGH] [security] SEC004
+Position: local-backend/1791600000_local_events.js:10
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+33. [MEDIUM] [data handling] DATA002
+Position: local-backend/seed-demo.mjs:5
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+34. [MEDIUM] [data handling] DATA002
+Position: local-backend/seed-demo.mjs:10
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+35. [HIGH] [security] SEC004
+Position: pb_migrations/1791500000_expert_management.js:9
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+36. [HIGH] [security] SEC004
+Position: pb_migrations/1791500000_expert_management.js:10
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+37. [HIGH] [security] SEC004
+Position: pb_migrations/1791800000_expert_cases_access.js:11
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+38. [MEDIUM] [data handling] DATA002
+Position: tests/expert-biographies.mjs:5
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+39. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:11
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+40. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:32
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+41. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:33
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+42. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:34
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+43. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:35
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+44. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:40
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+45. [HIGH] [security] SEC002
+Position: tests/portal-management.test.cjs:11
+Issue: Dynamic code execution
+Confidence: review required
+Details: Verify no untrusted content reaches this execution point; prefer a restricted parser.
+
+DIAGNOSTICS (compiler/linter output includes original file positions)
+Local diagnostics: SKIPPED (exit None)
+--static-only selected
+
+SCAN ERRORS

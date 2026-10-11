@@ -1,3 +1,4 @@
+import { boundedFullList } from "@/lib/bounded-records"
 import pb from "./pb"
 import type {
   Lecture,
@@ -124,7 +125,7 @@ function registrationToDB(
 
 export const lecturesCollection = {
   async getAll(): Promise<Lecture[]> {
-    const data = await pb.collection(LECTURES_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(LECTURES_COLLECTION), {
       sort: "-created",
     })
     console.log(data)
@@ -132,7 +133,7 @@ export const lecturesCollection = {
   },
 
   async getPublished(): Promise<Lecture[]> {
-    const data = await pb.collection(LECTURES_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(LECTURES_COLLECTION), {
       filter: 'status = "published"',
       sort: "schedule.dateTime",
     })
@@ -185,7 +186,7 @@ export const lecturesCollection = {
 
 export const lectureRegistrationsCollection = {
   async getAll(): Promise<LectureRegistration[]> {
-    const data = await pb.collection(REGISTRATIONS_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(REGISTRATIONS_COLLECTION), {
       sort: "-created",
     })
     return data.map((item) =>
@@ -194,8 +195,8 @@ export const lectureRegistrationsCollection = {
   },
 
   async getByLecture(lectureId: string): Promise<LectureRegistration[]> {
-    const data = await pb.collection(REGISTRATIONS_COLLECTION).getFullList({
-      filter: `lecture_id = "${lectureId}"`,
+    const data = await boundedFullList(pb.collection(REGISTRATIONS_COLLECTION), {
+      filter: pb.filter("lecture_id = {:value0}", { value0: lectureId }),
       sort: "-created",
     })
     return data.map((item) =>
@@ -204,8 +205,8 @@ export const lectureRegistrationsCollection = {
   },
 
   async getByUser(userId: string): Promise<LectureRegistration[]> {
-    const data = await pb.collection(REGISTRATIONS_COLLECTION).getFullList({
-      filter: `user_id = "${userId}"`,
+    const data = await boundedFullList(pb.collection(REGISTRATIONS_COLLECTION), {
+      filter: pb.filter("user_id = {:value0}", { value0: userId }),
       sort: "-created",
     })
     return data.map((item) =>
@@ -241,7 +242,7 @@ export const lectureRegistrationsCollection = {
 
 export const publicLecturesPublicCollection = {
   async getAll(): Promise<Lecture[]> {
-    const data = await pb.collection(PUBLIC_LECTURES_PUBLIC_COLLECTION).getFullList({
+    const data = await boundedFullList(pb.collection(PUBLIC_LECTURES_PUBLIC_COLLECTION), {
       sort: "-created",
     })
     return data.map((item) => lectureFromDB(item as unknown as Record<string, unknown>))

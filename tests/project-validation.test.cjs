@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require('typescript');
+const vm = require('node:vm');
+const exportsObject = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/project-validation.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText, { exports: exportsObject });
+const { validateProject, projectCaseData } = exportsObject;
+const valid = { name: '  Learning project  ', projectType: 'Training', description: 'Description', startDate: '2026-10-09', endDate: '2026-10-09' };
+assert.equal(validateProject(valid), null);
+for (const update of [{ name: '  x ' }, { name: 'x'.repeat(121) }, { projectType: 'x'.repeat(101) }, { description: 'x'.repeat(3001) }, { startDate: '2026-02-30' }, { startDate: '' }, { endDate: '2026-10-08' }, { endDate: 'invalid' }]) assert.ok(validateProject({ ...valid, ...update }));
+assert.equal(validateProject({ ...valid, endDate: '' }), null);
+assert.notEqual(validateProject({ ...valid, name: '' }, 'ar'), validateProject({ ...valid, name: '' }, 'en'));
+const data = projectCaseData(valid, { existing_setting: true });
+assert.equal(data.name, 'Learning project');
+assert.equal(data.service_type, 'organization');
+assert.equal(data.case_details.existing_setting, true);
+assert.equal(data.case_details.start_date, valid.startDate);
+console.log('Project validation and metadata checks passed.');

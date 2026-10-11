@@ -34,8 +34,11 @@ import { cn } from "@/lib/utils"
 import { t } from "@/lib/i18n"
 import { useLang } from "@/lib/lang-context"
 import { COUNTRY_CODES } from "@/lib/country-codes"
+import PocketBase from "pocketbase"
 import pb, { getErrorMessage, getFieldErrors } from "@/lib/pb"
 import {
+  ageGroupLabel,
+  consultationModeLabel,
   ACADEMIC_DEGREES,
   AGE_GROUPS,
   CONSULTATION_MODES,
@@ -44,6 +47,7 @@ import {
 import {
   SPECIALIZATION_OPTIONS,
   specializationLabel,
+  degreeLabel,
 } from "@/components/team/team-labels"
 import { Check, ChevronsUpDown, Paperclip, X } from "lucide-react"
 import {
@@ -52,6 +56,11 @@ import {
   normalizeEmail,
 } from "@/lib/validators"
 import { toast } from "sonner"
+import {
+  ExpertPublicDetailsFields,
+  type ExpertPublicDetails,
+} from "@/components/expert/ExpertPublicDetailsFields"
+import { isValidIban, normalizeIban } from "@/lib/iban"
 
 export function ExpertApplicationForm({
   onSuccess,
@@ -81,8 +90,18 @@ export function ExpertApplicationForm({
   const [specialization, setSpecialization] = useState<string[]>([])
   const [consultationMode, setConsultationMode] = useState("")
   const [fee, setFee] = useState("")
+  const [iban, setIban] = useState("")
   const [availability, setAvailability] = useState("")
-  const [message, setMessage] = useState("")
+  const [publicDetails, setPublicDetails] = useState<ExpertPublicDetails>({
+    publicNameEn: "",
+    publicNameAr: "",
+    publicQualificationEn: "",
+    publicQualificationAr: "",
+    publicSpecialtyEn: "",
+    publicSpecialtyAr: "",
+  })
+  const [bioEn, setBioEn] = useState("")
+  const [bioAr, setBioAr] = useState("")
   const [files, setFiles] = useState<File[]>([])
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
 
@@ -112,27 +131,12 @@ export function ExpertApplicationForm({
     setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const handleProfilePhotoChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setProfilePhoto(e.target.files?.[0] ?? null)
   }
 
   const removeProfilePhoto = () => {
     setProfilePhoto(null)
-  }
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const result = reader.result as string
-        const base64 = result.includes(",") ? result.split(",")[1] : result
-        resolve(base64)
-      }
-      reader.onerror = () => reject(reader.error)
-      reader.readAsDataURL(file)
-    })
   }
 
   const validate = (): boolean => {
@@ -161,6 +165,14 @@ export function ExpertApplicationForm({
         lang
       )
 
+    if (bioEn.length > 250 || bioAr.length > 250)
+      errs.biography = t(
+        {
+          en: "Each biography must be at most 250 characters.",
+          ar: "يجب ألا تتجاوز كل نبذة 250 حرفًا.",
+        },
+        lang
+      )
     setFieldErrors(errs)
     if (Object.keys(errs).length > 0) {
       setError("")
@@ -171,8 +183,9 @@ export function ExpertApplicationForm({
 
   const handleNext = () => {
     if (!validate()) return
-    window.scrollTo({ 
-      top: 0 
+
+    window.scrollTo({
+      top: 0,
     })
     setStep(2)
   }
@@ -182,6 +195,15 @@ export function ExpertApplicationForm({
     setError("")
 
     if (!validate()) return
+    if (iban.trim() && !isValidIban(iban)) {
+      setFieldErrors({
+        iban:
+          lang === "ar"
+            ? "يرجى إدخال رقم IBAN صحيح"
+            : "Please enter a valid IBAN",
+      })
+      return
+    }
 
     const totalSize =
       files.reduce((sum, f) => sum + f.size, 0) + (profilePhoto?.size ?? 0)
@@ -203,69 +225,19 @@ export function ExpertApplicationForm({
     try {
       const cleanName = name.trim()
       const cleanEmail = normalizeEmail(email)
-
-      const emailLabels =
-        lang === "ar"
-          ? {
-              title: "طلب جديد لتسجيل خبير",
-              name: "الاسم",
-              email: "البريد الإلكتروني",
-              residence: "بلد الإقامة",
-              city: "المدينة",
-              highestDegree: "أعلى درجة أكاديمية",
-              degreeTitle: "عنوان الدرجة",
-              fieldOfStudy: "مجال الدراسة",
-              whatsapp: "رقم واتساب",
-              ageGroup: "الفئة العمرية",
-              specialization: "التخصص",
-              consultationMode: "طريقة الاستشارة",
-              fee: "الرسوم",
-              availability: "التوفر",
-              message: "الرسالة",
-              profilePhoto: "الصورة الشخصية",
-              attachments: "المرفقات",
-              subjectPrefix: "طلب خبير من:",
-            }
-          : {
-              title: "New Expert Application",
-              name: "Name",
-              email: "Email",
-              residence: "Country of Residence",
-              city: "City",
-              highestDegree: "Highest Academic Degree",
-              degreeTitle: "Degree Title",
-              fieldOfStudy: "Field of Study",
-              whatsapp: "WhatsApp Number",
-              ageGroup: "Age Group",
-              specialization: "Specialization",
-              consultationMode: "Consultation Mode",
-              fee: "Fee",
-              availability: "Availability",
-              message: "Message",
-              profilePhoto: "Profile Photo",
-              attachments: "Attachments",
-              subjectPrefix: "Expert application from:",
-            }
-
-      const html = [
-        `<h2>${emailLabels.title}</h2>`,
-        `<p><strong>${emailLabels.name}:</strong> ${cleanName}</p>`,
-        `<p><strong>${emailLabels.email}:</strong> ${cleanEmail}</p>`,
-        residence ? `<p><strong>${emailLabels.residence}:</strong> ${residence}</p>` : "",
-        city ? `<p><strong>${emailLabels.city}:</strong> ${city}</p>` : "",
-        highestAcademicDegree ? `<p><strong>${emailLabels.highestDegree}:</strong> ${ACADEMIC_DEGREES.find((o) => o.value === highestAcademicDegree)?.label ?? highestAcademicDegree}</p>` : "",
-        degreeTitle ? `<p><strong>${emailLabels.degreeTitle}:</strong> ${degreeTitle}</p>` : "",
-        fieldOfStudy ? `<p><strong>${emailLabels.fieldOfStudy}:</strong> ${fieldOfStudy}</p>` : "",
-        whatsappNumber ? `<p><strong>${emailLabels.whatsapp}:</strong> ${whatsappCountryCode} ${whatsappNumber}</p>` : "",
-        ageGroup.length ? `<p><strong>${emailLabels.ageGroup}:</strong> ${AGE_GROUPS.filter((o) => ageGroup.includes(o.value)).map((o) => o.label).join(", ")}</p>` : "",
-        specialization.length ? `<p><strong>${emailLabels.specialization}:</strong> ${specialization.map((v) => specializationLabel(v, lang)).join(", ")}}</p>` : "",
-        consultationMode ? `<p><strong>${emailLabels.consultationMode}:</strong> ${CONSULTATION_MODES.find((o) => o.value === consultationMode)?.label ?? consultationMode}</p>` : "",
-        fee ? `<p><strong>${emailLabels.fee}:</strong> ${fee}</p>` : "",
-        availability ? `<p><strong>${emailLabels.availability}:</strong> ${availability}</p>` : "",
-        message ? `<p><strong>${emailLabels.message}:</strong><br/>${message}</p>` : "",
-        profilePhoto ? `<p><strong>${emailLabels.profilePhoto}:</strong> ${profilePhoto.name}</p>` : "",
-        files.length ? `<p><strong>${emailLabels.attachments}:</strong> ${files.map((f) => f.name).join(", ")}</p>` : "",
-      ].join("\n")
+      if (iban.trim()) {
+        // Do not create an account if the backend cannot securely persist its IBAN.
+        const config = await pb.send<{ iban: boolean }>(
+          "/api/dsc/expert-registration-config",
+          { method: "GET" }
+        )
+        if (!config.iban)
+          throw new Error(
+            lang === "ar"
+              ? "حفظ IBAN غير متاح حالياً"
+              : "IBAN storage is not configured"
+          )
+      }
 
       const userFormData = new FormData()
       const extraFormData = new FormData()
@@ -278,9 +250,18 @@ export function ExpertApplicationForm({
       userFormData.set("name", cleanName)
       userFormData.set("role", "expert")
       userFormData.set("is_active", "false")
+      if (iban.trim()) userFormData.set("expert_iban", normalizeIban(iban))
 
       // Create user record
       const user = await pb.collection("users").create(userFormData)
+
+      const profileClient = pb.authStore.isValid
+        ? pb
+        : new PocketBase(pb.baseURL)
+      if (!profileClient.authStore.isValid)
+        await profileClient
+          .collection("users")
+          .authWithPassword(cleanEmail, password)
 
       // Extra fields
       extraFormData.set("user", user.id)
@@ -289,47 +270,50 @@ export function ExpertApplicationForm({
       extraFormData.set("country_of_residence", residence)
       extraFormData.set("city", city)
       extraFormData.set("whatsapp_country_code", whatsappCountryCode)
-      extraFormData.set("whatsapp_number",whatsappNumber)
+      extraFormData.set("whatsapp_number", whatsappNumber)
       extraFormData.set("highest_academic_degree", highestAcademicDegree)
       extraFormData.set("degree_title", degreeTitle)
       extraFormData.set("field_of_study", fieldOfStudy)
 
-      ageGroup.forEach((v) => extraFormData.append("age_group", v))
-      specialization.forEach((v) =>
-        extraFormData.append("specialization_type", v)
-      )
+      extraFormData.set("age_group", JSON.stringify(ageGroup))
+      extraFormData.set("specialization_type", JSON.stringify(specialization))
       extraFormData.set("consultation_mode", consultationMode)
 
       files.forEach((file) => extraFormData.append("cv", file))
 
-      extraFormData.set("bio", message)
+      extraFormData.set("public_name_en", publicDetails.publicNameEn.trim())
+      extraFormData.set("public_name_ar", publicDetails.publicNameAr.trim())
+      extraFormData.set(
+        "public_qualification_en",
+        publicDetails.publicQualificationEn.trim()
+      )
+      extraFormData.set(
+        "public_qualification_ar",
+        publicDetails.publicQualificationAr.trim()
+      )
+      extraFormData.set(
+        "public_specialty_en",
+        publicDetails.publicSpecialtyEn.trim()
+      )
+      extraFormData.set(
+        "public_specialty_ar",
+        publicDetails.publicSpecialtyAr.trim()
+      )
+      extraFormData.set("short_bio_en", bioEn)
+      extraFormData.set("short_bio_ar", bioAr)
       extraFormData.set("availability", availability)
       extraFormData.set("fee", fee)
 
       // Create extra record
-      await pb.collection("expert_profiles").create(extraFormData)
+      await profileClient.collection("expert_profiles").create(extraFormData)
 
-      let attachments: { filename: string; content: string }[] = []
-      if (files.length > 0) {
-        attachments = await Promise.all(
-          files.map(async (file) => ({
-            filename: file.name,
-            content: await fileToBase64(file),
-          }))
-        )
-      }
-
-      const response = await fetch("/api/send-email", {
+      const response = await fetch("/api/expert-application", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "admin@dsc.ac",
-          to: cleanEmail,
-          cc: "admin@dsc.ac",
-          subject: `${emailLabels.subjectPrefix} ${cleanName}`,
-          html,
-          attachments,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${profileClient.authStore.token}`,
+        },
+        body: JSON.stringify({}),
       })
 
       toast.success(
@@ -368,14 +352,8 @@ export function ExpertApplicationForm({
         <CardHeader>
           <CardTitle>
             {step === 1
-              ? t(
-                { en: "Personal Information", ar: "المعلومات الشخصية" },
-                lang
-              )
-              : t(
-                { en: "Client Preferences", ar: "تفضيلات العميل" },
-                lang
-              )}
+              ? t({ en: "Personal Information", ar: "المعلومات الشخصية" }, lang)
+              : t({ en: "Client Preferences", ar: "تفضيلات العميل" }, lang)}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -387,597 +365,772 @@ export function ExpertApplicationForm({
 
           {step === 1 && (
             <>
-          <div className="space-y-2">
-            <Label>
-              {t({ en: "Full Name", ar: "الاسم الكامل" }, lang)}
-              <span className="text-red-500 ml-1">*</span>
-            </Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
-              aria-invalid={fieldErrors.name ? true : undefined}
-              placeholder={t(
-                { en: "e.g. Dr. Ahmed Al-Rashid", ar: "مثال: د. أحمد الراشد" },
-                lang
-              )}
-            />
-            {fieldErrorNode("name")}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "Country of Residence", ar: "بلد الإقامة" }, lang)}
-              </Label>
-              <Select value={residence} onValueChange={setResidence}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t({ en: "Select country of residence...", ar: "اختر بلد الإقامة..." }, lang)} />
-                </SelectTrigger>
-                <SelectContent position="popper" className="max-h-60!">
-                  {COUNTRY_CODES.map((c) => (
-                    <SelectItem key={c.value} value={c.label.en}>
-                      {t(c.label, lang)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "City", ar: "المدينة" }, lang)}
-              </Label>
-              <Input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder={t(
-                  { en: "e.g. Riyadh", ar: "مثال: الرياض" },
-                  lang
-                )}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "Highest Academic Degree", ar: "أعلى مؤهل أكاديمي" }, lang)}
-              </Label>
-              <Select
-                value={highestAcademicDegree}
-                onValueChange={setHighestAcademicDegree}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={t(
-                      { en: "Select degree...", ar: "اختر المؤهل..." },
-                      lang
-                    )}
-                  />
-                </SelectTrigger>
-                <SelectContent position="popper" className="max-h-60!">
-                  {ACADEMIC_DEGREES.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "Degree Title", ar: "عنوان الشهادة" }, lang)}
-              </Label>
-              <Input
-                value={degreeTitle}
-                onChange={(e) => setDegreeTitle(e.target.value)}
-                placeholder={t(
-                  { en: "e.g. Bachelor of Education", ar: "مثال: بكالوريوس تربية" },
-                  lang
-                )}
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label>
-                {t({ en: "Field of Study", ar: "مجال الدراسة" }, lang)}
-              </Label>
-              <Input
-                value={fieldOfStudy}
-                onChange={(e) => setFieldOfStudy(e.target.value)}
-                placeholder={t(
-                  { en: "e.g. Special Education", ar: "مثال: التربية الخاصة" },
-                  lang
-                )}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "Email", ar: "البريد الإلكتروني" }, lang)}
-                <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <EmailInput
-                value={email}
-                onChange={setEmail}
-                error={fieldErrors.email}
-                placeholder="your@email.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "WhatsApp Number", ar: "رقم الواتساب" }, lang)}
-              </Label>
-              <div className="flex gap-2">
-                <Select
-                  value={whatsappCountryCode}
-                  onValueChange={setWhatsappCountryCode}
-                >
-                  <SelectTrigger className="w-30">
-                    <SelectValue placeholder="+966" />
-                  </SelectTrigger>
-                  <SelectContent position="popper" className="max-h-60! max-w-30">
-                    {COUNTRY_CODES.map((c) => (
-                      <SelectItem key={c.value} value={c.dialCode}>
-                        {t(c.label, lang)} ({c.dialCode})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-2">
+                <Label>
+                  {t({ en: "Full Name", ar: "الاسم الكامل" }, lang)}
+                  <span className="ml-1 text-red-500">*</span>
+                </Label>
                 <Input
-                  type="tel"
-                  value={whatsappNumber}
-                  onChange={(e) => setWhatsappNumber(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                  aria-invalid={fieldErrors.name ? true : undefined}
                   placeholder={t(
-                    { en: "e.g. 55 000 0000", ar: "مثال: 55 000 0000" },
-                    lang
-                  )}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "Password", ar: "كلمة المرور" }, lang)}
-                <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <PasswordInput
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                aria-invalid={fieldErrors.password ? true : undefined}
-                placeholder={t(
-                  { en: "Min 8 characters", ar: "8 أحرف على الأقل" },
-                  lang
-                )}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t(
-                  { en: "Minimum 8 characters", ar: "8 أحرف على الأقل" },
-                  lang
-                )}
-              </p>
-              {fieldErrorNode("password")}
-              {!fieldErrors.password && passwordTooShort && (
-                <p className="text-xs text-red-500">
-                  {t(
                     {
-                      en: "Password must be at least 8 characters",
-                      ar: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+                      en: "e.g. Dr. Ahmed Al-Rashid",
+                      ar: "مثال: د. أحمد الراشد",
                     },
                     lang
                   )}
-                </p>
-              )}
-            </div>
+                />
+                {fieldErrorNode("name")}
+              </div>
 
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "Confirm Password", ar: "تأكيد كلمة المرور" }, lang)}
-                <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <PasswordInput
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
-                aria-invalid={fieldErrors.passwordConfirm ? true : undefined}
-                placeholder={t(
-                  { en: "Re-enter your password", ar: "أعد إدخال كلمة المرور" },
-                  lang
-                )}
-              />
-              {fieldErrorNode("passwordConfirm")}
-              {!fieldErrors.passwordConfirm && passwordsMismatch && (
-                <p className="text-xs text-red-500">
-                  {t(
-                    { en: "Passwords do not match", ar: "كلمتا المرور غير متطابقتين" },
-                    lang
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>
+                    {t({ en: "Country of Residence", ar: "بلد الإقامة" }, lang)}
+                  </Label>
+                  <Select value={residence} onValueChange={setResidence}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={t(
+                          {
+                            en: "Select country of residence...",
+                            ar: "اختر بلد الإقامة...",
+                          },
+                          lang
+                        )}
+                      />
+                    </SelectTrigger>
+                    <SelectContent position="popper" className="max-h-60!">
+                      {COUNTRY_CODES.map((c) => (
+                        <SelectItem key={c.value} value={c.label.en}>
+                          {t(c.label, lang)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {t({ en: "City of Residence", ar: "مدينة الإقامة" }, lang)}
+                  </Label>
+                  <Input
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder={t(
+                      { en: "e.g. Riyadh", ar: "مثال: الرياض" },
+                      lang
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>
+                    {t(
+                      {
+                        en: "Highest Academic Degree",
+                        ar: "أعلى مؤهل أكاديمي",
+                      },
+                      lang
+                    )}
+                  </Label>
+                  <Select
+                    value={highestAcademicDegree}
+                    onValueChange={setHighestAcademicDegree}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={t(
+                          { en: "Select degree...", ar: "اختر المؤهل..." },
+                          lang
+                        )}
+                      />
+                    </SelectTrigger>
+                    <SelectContent position="popper" className="max-h-60!">
+                      {ACADEMIC_DEGREES.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {degreeLabel(option.value, lang)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {t({ en: "Degree Title", ar: "عنوان الشهادة" }, lang)}
+                  </Label>
+                  <Input
+                    value={degreeTitle}
+                    onChange={(e) => setDegreeTitle(e.target.value)}
+                    placeholder={t(
+                      {
+                        en: "e.g. Bachelor of Education",
+                        ar: "مثال: بكالوريوس تربية",
+                      },
+                      lang
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label>
+                    {t({ en: "Field of Study", ar: "مجال الدراسة" }, lang)}
+                  </Label>
+                  <Input
+                    value={fieldOfStudy}
+                    onChange={(e) => setFieldOfStudy(e.target.value)}
+                    placeholder={t(
+                      {
+                        en: "e.g. Special Education",
+                        ar: "مثال: التربية الخاصة",
+                      },
+                      lang
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>
+                    {t({ en: "Email", ar: "البريد الإلكتروني" }, lang)}
+                    <span className="ml-1 text-red-500">*</span>
+                  </Label>
+                  <EmailInput
+                    value={email}
+                    onChange={setEmail}
+                    error={fieldErrors.email}
+                    placeholder="your@email.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {t({ en: "WhatsApp Number", ar: "رقم الواتساب" }, lang)}
+                  </Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={whatsappCountryCode}
+                      onValueChange={setWhatsappCountryCode}
+                    >
+                      <SelectTrigger className="w-30">
+                        <SelectValue placeholder="+966" />
+                      </SelectTrigger>
+                      <SelectContent
+                        position="popper"
+                        className="max-h-60! max-w-30"
+                      >
+                        {COUNTRY_CODES.map((c) => (
+                          <SelectItem key={c.value} value={c.dialCode}>
+                            {t(c.label, lang)} ({c.dialCode})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="tel"
+                      value={whatsappNumber}
+                      onChange={(e) => setWhatsappNumber(e.target.value)}
+                      placeholder={t(
+                        { en: "e.g. 55 000 0000", ar: "مثال: 55 000 0000" },
+                        lang
+                      )}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {t({ en: "Password", ar: "كلمة المرور" }, lang)}
+                    <span className="ml-1 text-red-500">*</span>
+                  </Label>
+                  <PasswordInput
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    aria-invalid={fieldErrors.password ? true : undefined}
+                    placeholder={t(
+                      { en: "Min 8 characters", ar: "8 أحرف على الأقل" },
+                      lang
+                    )}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t(
+                      { en: "Minimum 8 characters", ar: "8 أحرف على الأقل" },
+                      lang
+                    )}
+                  </p>
+                  {fieldErrorNode("password")}
+                  {!fieldErrors.password && passwordTooShort && (
+                    <p className="text-xs text-red-500">
+                      {t(
+                        {
+                          en: "Password must be at least 8 characters",
+                          ar: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+                        },
+                        lang
+                      )}
+                    </p>
                   )}
-                </p>
-              )}
-            </div>
-          </div>
+                </div>
 
-          <Button type="button" className="p-4 w-full" onClick={handleNext}>
-            {t({ en: "Next", ar: "التالي" }, lang)}
-          </Button>
+                <div className="space-y-2">
+                  <Label>
+                    {t(
+                      { en: "Confirm Password", ar: "تأكيد كلمة المرور" },
+                      lang
+                    )}
+                    <span className="ml-1 text-red-500">*</span>
+                  </Label>
+                  <PasswordInput
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    aria-invalid={
+                      fieldErrors.passwordConfirm ? true : undefined
+                    }
+                    placeholder={t(
+                      {
+                        en: "Re-enter your password",
+                        ar: "أعد إدخال كلمة المرور",
+                      },
+                      lang
+                    )}
+                  />
+                  {fieldErrorNode("passwordConfirm")}
+                  {!fieldErrors.passwordConfirm && passwordsMismatch && (
+                    <p className="text-xs text-red-500">
+                      {t(
+                        {
+                          en: "Passwords do not match",
+                          ar: "كلمتا المرور غير متطابقتين",
+                        },
+                        lang
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <Button type="button" className="w-full p-4" onClick={handleNext}>
+                {t({ en: "Next", ar: "التالي" }, lang)}
+              </Button>
             </>
           )}
 
           {step === 2 && (
             <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "Age Group", ar: "الفئة العمرية" }, lang)}
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className="w-full justify-between h-auto min-h-10"
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>
+                    {t({ en: "Age Group", ar: "الفئة العمرية" }, lang)}
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="h-auto min-h-10 w-full justify-between"
+                      >
+                        <div className="flex flex-wrap gap-1">
+                          {ageGroup.length > 0 ? (
+                            ageGroup.map((value) => {
+                              return (
+                                <Badge
+                                  key={value}
+                                  variant="secondary"
+                                  className="flex items-center gap-1"
+                                >
+                                  {ageGroupLabel(value, lang)}
+                                  <X
+                                    className="h-3 w-3 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setAgeGroup(
+                                        ageGroup.filter((v) => v !== value)
+                                      )
+                                    }}
+                                  />
+                                </Badge>
+                              )
+                            })
+                          ) : (
+                            <span className="text-muted-foreground">
+                              {t(
+                                {
+                                  en: "Select age groups...",
+                                  ar: "اختر الفئات العمرية...",
+                                },
+                                lang
+                              )}
+                            </span>
+                          )}
+                        </div>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-[400px] max-w-[calc(100vw-2rem)] p-0"
+                      align="start"
+                    >
+                      <Command>
+                        <CommandInput
+                          placeholder={t(
+                            {
+                              en: "Search age groups...",
+                              ar: "البحث عن الفئات...",
+                            },
+                            lang
+                          )}
+                        />
+                        <CommandList>
+                          <CommandEmpty>
+                            {t(
+                              {
+                                en: "No age group found.",
+                                ar: "لم يتم العثور على فئة.",
+                              },
+                              lang
+                            )}
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {AGE_GROUPS.map((option) => (
+                              <CommandItem
+                                key={option.value}
+                                value={option.value}
+                                onSelect={() => {
+                                  setAgeGroup(
+                                    ageGroup.includes(option.value)
+                                      ? ageGroup.filter(
+                                          (v) => v !== option.value
+                                        )
+                                      : [...ageGroup, option.value]
+                                  )
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    ageGroup.includes(option.value)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {ageGroupLabel(option.value, lang)}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {t({ en: "Consultation Mode", ar: "وضع الاستشارة" }, lang)}
+                  </Label>
+                  <Select
+                    value={consultationMode}
+                    onValueChange={setConsultationMode}
                   >
-                    <div className="flex flex-wrap gap-1">
-                      {ageGroup.length > 0 ? (
-                        ageGroup.map((value) => {
-                          const option = AGE_GROUPS.find((o) => o.value === value)
-                          return (
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={t(
+                          { en: "Select mode...", ar: "اختر الوضع..." },
+                          lang
+                        )}
+                      />
+                    </SelectTrigger>
+                    <SelectContent position="popper" className="max-h-60!">
+                      {CONSULTATION_MODES.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {consultationModeLabel(option.value, lang)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  {t(
+                    {
+                      en: "Field of Service Provision",
+                      ar: "مجال تقديم الخدمات",
+                    },
+                    lang
+                  )}
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      className="h-auto min-h-10 w-full justify-between"
+                    >
+                      <div className="flex flex-wrap gap-1">
+                        {specialization.length > 0 ? (
+                          specialization.map((value) => (
                             <Badge
                               key={value}
                               variant="secondary"
                               className="flex items-center gap-1"
                             >
-                              {option ? option.label : value}
+                              {specializationLabel(value, lang)}
                               <X
                                 className="h-3 w-3 cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setAgeGroup(ageGroup.filter((v) => v !== value))
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  setSpecialization(
+                                    specialization.filter(
+                                      (item) => item !== value
+                                    )
+                                  )
                                 }}
                               />
                             </Badge>
-                          )
-                        })
-                      ) : (
-                        <span className="text-muted-foreground">
-                          {t({ en: "Select age groups...", ar: "اختر الفئات العمرية..." }, lang)}
-                        </span>
-                      )}
-                    </div>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder={t({ en: "Search age groups...", ar: "البحث عن الفئات..." }, lang)} />
-                    <CommandList>
-                      <CommandEmpty>
-                        {t({ en: "No age group found.", ar: "لم يتم العثور على فئة." }, lang)}
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {AGE_GROUPS.map((option) => (
-                          <CommandItem
-                            key={option.value}
-                            value={option.value}
-                            onSelect={() => {
-                              setAgeGroup(
-                                ageGroup.includes(option.value)
-                                  ? ageGroup.filter((v) => v !== option.value)
-                                  : [...ageGroup, option.value]
-                              )
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                ageGroup.includes(option.value) ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {option.label}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                {t({ en: "Consultation Mode", ar: "وضع الاستشارة" }, lang)}
-              </Label>
-              <Select value={consultationMode} onValueChange={setConsultationMode}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t({ en: "Select mode...", ar: "اختر الوضع..." }, lang)} />
-                </SelectTrigger>
-                <SelectContent position="popper" className="max-h-60!">
-                  {CONSULTATION_MODES.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>
-              {t({ en: "Field of Service Provision", ar: "مجال تقديم الخدمات" }, lang)}
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  role="combobox"
-                  className="h-auto min-h-10 w-full justify-between"
-                >
-                  <div className="flex flex-wrap gap-1">
-                    {specialization.length > 0 ? (
-                      specialization.map((value) => (
-                        <Badge
-                          key={value}
-                          variant="secondary"
-                          className="flex items-center gap-1"
-                        >
-                          {specializationLabel(value, lang)}
-                          <X
-                            className="h-3 w-3 cursor-pointer"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              setSpecialization(
-                                specialization.filter((item) => item !== value)
-                              )
-                            }}
-                          />
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground">
-                        {t(
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {t(
+                              {
+                                en: "Select the services you provide...",
+                                ar: "اختر الخدمات التي تقدمها...",
+                              },
+                              lang
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-80 max-w-[calc(100vw-2rem)] p-0"
+                    align="start"
+                  >
+                    <Command>
+                      <CommandInput
+                        placeholder={t(
                           {
-                            en: "Select the services you provide...",
-                            ar: "اختر الخدمات التي تقدمها...",
+                            en: "Search services...",
+                            ar: "البحث عن الخدمات...",
                           },
                           lang
                         )}
-                      </span>
-                    )}
-                  </div>
-                  <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="start">
-                <Command>
-                  <CommandInput
-                    placeholder={t(
-                      { en: "Search services...", ar: "البحث عن الخدمات..." },
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {t(
+                            {
+                              en: "No service found.",
+                              ar: "لم يتم العثور على خدمة.",
+                            },
+                            lang
+                          )}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {SPECIALIZATION_OPTIONS.map((option) => (
+                            <CommandItem
+                              key={option.value}
+                              value={option.label.en}
+                              onSelect={() =>
+                                setSpecialization(
+                                  specialization.includes(option.value)
+                                    ? specialization.filter(
+                                        (item) => item !== option.value
+                                      )
+                                    : [...specialization, option.value]
+                                )
+                              }
+                            >
+                              <Check
+                                className={cn(
+                                  "me-2 h-4 w-4",
+                                  specialization.includes(option.value)
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {t(option.label, lang)}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  {t(
+                    { en: "First Session Fee", ar: "رسوم الجلسة الأولى" },
+                    lang
+                  )}
+                </Label>
+                <Input
+                  type="text"
+                  min="0"
+                  value={fee}
+                  onChange={(e) => setFee(e.target.value)}
+                  placeholder={t(
+                    { en: "e.g. 500 per session", ar: "مثال: 500" },
+                    lang
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expert-iban">
+                  {lang === "ar"
+                    ? "رقم الحساب المصرفي الدولي (IBAN)"
+                    : "IBAN number"}
+                </Label>
+                <Input
+                  id="expert-iban"
+                  dir="ltr"
+                  value={iban}
+                  maxLength={42}
+                  autoComplete="off"
+                  spellCheck={false}
+                  onChange={(event) =>
+                    setIban(event.target.value.toUpperCase())
+                  }
+                  aria-invalid={!!fieldErrors.iban}
+                  aria-describedby="expert-iban-help"
+                />
+                {fieldErrorNode("iban")}
+                <p
+                  id="expert-iban-help"
+                  className="text-sm text-muted-foreground"
+                >
+                  {lang === "ar"
+                    ? "اختياري. يُحفظ بشكل خاص لبيانات الدفع."
+                    : "Optional. Stored privately for payment details."}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  {t({ en: "Availability", ar: "أوقات التوفر" }, lang)}
+                </Label>
+                <Input
+                  value={availability}
+                  onChange={(e) => setAvailability(e.target.value)}
+                  placeholder={t(
+                    {
+                      en: "e.g. Weekdays 9am-5pm",
+                      ar: "مثال: أيام الأسبوع 9ص-5م",
+                    },
+                    lang
+                  )}
+                />
+              </div>
+
+              <ExpertPublicDetailsFields
+                values={publicDetails}
+                onChange={(change) =>
+                  setPublicDetails((current) => ({ ...current, ...change }))
+                }
+              />
+
+              {(
+                [
+                  {
+                    key: "short_bio_en",
+                    label: t(
+                      {
+                        en: "Short biography (English)",
+                        ar: "نبذة قصيرة بالإنجليزية",
+                      },
+                      lang
+                    ),
+                    value: bioEn,
+                    set: setBioEn,
+                    dir: "ltr",
+                  },
+                  {
+                    key: "short_bio_ar",
+                    label: t(
+                      {
+                        en: "Short biography (Arabic)",
+                        ar: "نبذة قصيرة بالعربية",
+                      },
+                      lang
+                    ),
+                    value: bioAr,
+                    set: setBioAr,
+                    dir: "rtl",
+                  },
+                ] as const
+              ).map((field) => (
+                <div key={field.key} className="space-y-2">
+                  <Label htmlFor={field.key}>{field.label}</Label>
+                  <Textarea
+                    id={field.key}
+                    dir={field.dir}
+                    value={field.value}
+                    onChange={(e) => field.set(e.target.value)}
+                    maxLength={250}
+                    rows={4}
+                    aria-describedby={`${field.key}-count`}
+                  />
+                  <p
+                    id={`${field.key}-count`}
+                    className="text-xs text-muted-foreground"
+                  >
+                    {field.value.length}/250 ·{" "}
+                    {t(
+                      {
+                        en: "Maximum 250 characters, including spaces and punctuation.",
+                        ar: "250 حرفًا كحد أقصى، بما في ذلك المسافات وعلامات الترقيم.",
+                      },
                       lang
                     )}
+                  </p>
+                </div>
+              ))}
+              <div className="space-y-2">
+                <Label>
+                  {t({ en: "Profile Photo", ar: "الصورة الشخصية" }, lang)}
+                </Label>
+                <div className="rounded-lg border-2 border-dashed border-border p-4">
+                  <input
+                    ref={profilePhotoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfilePhotoChange}
+                    className="hidden"
+                    id="profile-photo-upload"
                   />
-                  <CommandList>
-                    <CommandEmpty>
+                  <label
+                    htmlFor="profile-photo-upload"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <Paperclip className="h-5 w-5" />
+                    <span>
                       {t(
-                        { en: "No service found.", ar: "لم يتم العثور على خدمة." },
+                        {
+                          en: "Click to upload your profile photo",
+                          ar: "انقر لرفع صورتك الشخصية",
+                        },
                         lang
                       )}
-                    </CommandEmpty>
-                    <CommandGroup>
-                      {SPECIALIZATION_OPTIONS.map((option) => (
-                        <CommandItem
-                          key={option.value}
-                          value={option.label.en}
-                          onSelect={() =>
-                            setSpecialization(
-                              specialization.includes(option.value)
-                                ? specialization.filter(
-                                    (item) => item !== option.value
-                                  )
-                                : [...specialization, option.value]
-                            )
-                          }
-                        >
-                          <Check
-                            className={cn(
-                              "me-2 h-4 w-4",
-                              specialization.includes(option.value)
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {t(option.label, lang)}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label>
-              {t({ en: "First Session Fee", ar: "رسوم الجلسة الأولى" }, lang)}
-            </Label>
-            <Input
-              type="text"
-              min="0"
-              value={fee}
-              onChange={(e) => setFee(e.target.value)}
-              placeholder={t(
-                { en: "e.g. 500 per session", ar: "مثال: 500" },
-                lang
-              )}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>
-              {t({ en: "Availability", ar: "أوقات التوفر" }, lang)}
-            </Label>
-            <Input
-              value={availability}
-              onChange={(e) => setAvailability(e.target.value)}
-              placeholder={t(
-                { en: "e.g. Weekdays 9am-5pm", ar: "مثال: أيام الأسبوع 9ص-5م" },
-                lang
-              )}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>
-              {t({ en: "Message", ar: "رسالة" }, lang)}
-            </Label>
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={t(
-                {
-                  en: "Tell us about your expertise and why you'd like to join...",
-                  ar: "أخبرنا عن خبرتك ولماذا ترغب في الانضمام...",
-                },
-                lang
-              )}
-              rows={4}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>
-              {t({ en: "Profile Photo", ar: "الصورة الشخصية" }, lang)}
-            </Label>
-            <div className="border-2 border-dashed border-border rounded-lg p-4">
-              <input
-                ref={profilePhotoInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleProfilePhotoChange}
-                className="hidden"
-                id="profile-photo-upload"
-              />
-              <label
-                htmlFor="profile-photo-upload"
-                className="flex flex-col items-center justify-center cursor-pointer gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Paperclip className="h-5 w-5" />
-                <span>
-                  {t(
-                    {
-                      en: "Click to upload your profile photo",
-                      ar: "انقر لرفع صورتك الشخصية",
-                    },
-                    lang
-                  )}
-                </span>
-              </label>
-            </div>
-
-            {profilePhoto && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                <div className="flex items-center gap-1.5 bg-muted rounded-full px-3 py-1 text-sm">
-                  <Paperclip className="h-3 w-3" />
-                  <span className="max-w-[150px] truncate">
-                    {profilePhoto.name}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={removeProfilePhoto}
-                    className="hover:text-red-500 transition-colors"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                    </span>
+                  </label>
                 </div>
-              </div>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>
-              {t({ en: "Upload CV", ar: "رفع السيرة الذاتية" }, lang)}
-            </Label>
-            <div className="border-2 border-dashed border-border rounded-lg p-4">
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="flex flex-col items-center justify-center cursor-pointer gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Paperclip className="h-5 w-5" />
-                <span>
-                  {t(
-                    {
-                      en: "Click to upload your CV",
-                      ar: "انقر لرفع سيرتك الذاتية",
-                    },
-                    lang
-                  )}
-                </span>
-              </label>
-            </div>
 
-            {files.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-1.5 bg-muted rounded-full px-3 py-1 text-sm"
-                  >
-                    <Paperclip className="h-3 w-3" />
-                    <span className="max-w-[150px] truncate">{file.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="hover:text-red-500 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                {profilePhoto && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm">
+                      <Paperclip className="h-3 w-3" />
+                      <span className="max-w-[150px] truncate">
+                        {profilePhoto.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={removeProfilePhoto}
+                        className="transition-colors hover:text-red-500"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </div>
+              <div className="space-y-2">
+                <Label>
+                  {t({ en: "Upload CV", ar: "رفع السيرة الذاتية" }, lang)}
+                </Label>
+                <div className="rounded-lg border-2 border-dashed border-border p-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    <Paperclip className="h-5 w-5" />
+                    <span>
+                      {t(
+                        {
+                          en: "Click to upload your CV",
+                          ar: "انقر لرفع سيرتك الذاتية",
+                        },
+                        lang
+                      )}
+                    </span>
+                  </label>
+                </div>
 
+                {files.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {files.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm"
+                      >
+                        <Paperclip className="h-3 w-3" />
+                        <span className="max-w-[150px] truncate">
+                          {file.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="transition-colors hover:text-red-500"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                window.scrollTo({ top: 0 })
-                setStep(1)
-              }}
-            >
-              {t({ en: "Back", ar: "رجوع" }, lang)}
-            </Button>
-            <Button type="submit" className="flex-1" disabled={isSubmitting}>
-              {isSubmitting
-                ? t({ en: "Submitting...", ar: "جارٍ الإرسال..." }, lang)
-                : t({ en: "Submit Application", ar: "إرسال الطلب" }, lang)}
-            </Button>
-          </div>
-          <p className="text-center text-sm text-muted-foreground">
-            {t(
-              {
-                en: "Your application will be reviewed by our team. You will receive an email once your account is approved.",
-                ar: "سيتم مراجعة طلبك من قبل فريقنا. ستتلقى بريدًا إلكترونيًا بمجرد الموافقة على حسابك.",
-              },
-              lang
-            )}
-          </p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    window.scrollTo({ top: 0 })
+                    setStep(1)
+                  }}
+                >
+                  {t({ en: "Back", ar: "رجوع" }, lang)}
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? t({ en: "Submitting...", ar: "جارٍ الإرسال..." }, lang)
+                    : t({ en: "Submit Application", ar: "إرسال الطلب" }, lang)}
+                </Button>
+              </div>
+              <p className="text-center text-sm text-muted-foreground">
+                {t(
+                  {
+                    en: "Your application will be reviewed by our team. You will receive an email once your account is approved.",
+                    ar: "سيتم مراجعة طلبك من قبل فريقنا. ستتلقى بريدًا إلكترونيًا بمجرد الموافقة على حسابك.",
+                  },
+                  lang
+                )}
+              </p>
             </>
           )}
         </CardContent>

@@ -1,7 +1,7 @@
 "use client"
 
 import { use, useState } from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useUsers } from "@/hooks/useUsers"
 import { useAuth } from "@/hooks/useAuth"
 import { useProfiles } from "@/hooks/useProfiles"
@@ -99,6 +99,7 @@ export default function AdminUserDetailPage({
 }) {
   const { id: userId } = use(params)
   const router = useRouter()
+  const usersListPath = usePathname().includes("/experts/") ? "/dashboard/admin/experts" : "/dashboard/admin/users"
   const { lang } = useLang()
   const {
     users,
@@ -271,7 +272,7 @@ export default function AdminUserDetailPage({
     try {
       const blockers = await getDeletionBlockers(userId)
       setDeleteBlockers(blockers)
-    } catch (error: any) {
+    } catch (error: unknown) {
       setDeleteError(
         getErrorMessage(error) ||
           (lang === "ar"
@@ -294,8 +295,8 @@ export default function AdminUserDetailPage({
     setDeleteError("")
     try {
       await deleteUser(userId)
-      router.push("/dashboard/admin/users")
-    } catch (error: any) {
+      router.push(usersListPath)
+    } catch (error: unknown) {
       setDeleteError(
         getErrorMessage(error) ||
           (lang === "ar"
@@ -337,7 +338,7 @@ export default function AdminUserDetailPage({
       })
       // Refresh profiles to show new case
       refreshProfiles()
-    } catch (error: any) {
+    } catch (error: unknown) {
       setCaseFormError(
         getErrorMessage(error) ||
           (lang === "ar"
@@ -361,7 +362,7 @@ export default function AdminUserDetailPage({
         <h2 className="mb-4 text-xl font-medium">
           {lang === "ar" ? "المستخدم غير موجود" : "User not found"}
         </h2>
-        <Link href="/dashboard/admin/users">
+        <Link href={usersListPath}>
           <Button>
             {lang === "ar" ? "العودة إلى المستخدمين" : "Back to Users"}
           </Button>

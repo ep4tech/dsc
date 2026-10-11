@@ -1,58 +1,70 @@
 import { Resend } from "resend"
-
-const botToken = process.env.BOT_TOKEN
-
+import { escapeContactHtml } from "@/lib/contact-validation"
+import {
+  guardMessaging,
+  readMessagingBody,
+  messageString,
+  messagingError,
+  RequestError,
+  localMessagingDisabled,
+} from "@/lib/messaging-security"
 export async function POST(request: Request) {
   try {
-    const { name, contact, email, issueType, caseType, consultationType, preferredDate, preferredTime, description } = await request.json()
-
-    const message = [
-      "*New Consultation Request*",
-      "",
-      `*Name:* ${name}`,
-      `*Contact:* ${contact}`,
-      `*Email:* ${email}`,
-      issueType ? `*Issue Type:* ${issueType}` : "*Issue Type:*",
-      caseType ? `*Case Type:* ${caseType}` : "*Case Type:*",
-      consultationType ? `*Consultation Type:* ${consultationType === "online" ? "Online" : "Face to Face"}` : null,
-      preferredDate ? `*Preferred Date:* ${preferredDate}` : null,
-      preferredTime ? `*Preferred Time:* ${preferredTime}` : null,
-      description ? `*Description:* ${description}` : "*Description:*",
-    ].filter(Boolean).join("\n")
-
-
+    guardMessaging(request)
+    const body = await readMessagingBody(request)
+    const values = Object.fromEntries(
+      [
+        "name",
+        "contact",
+        "email",
+        "issueType",
+        "caseType",
+        "consultationType",
+        "preferredDate",
+        "preferredTime",
+        "description",
+      ].map((key) => [
+        key,
+        messageString(
+          body,
+          key,
+          key === "description" ? 3000 : 254,
+          ["name", "contact", "email"].includes(key)
+        ),
+      ])
+    )
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email))
+      throw new RequestError("Invalid email")
+    const text =
+      "New Consultation Request\n" +
+      Object.entries(values)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join("\n")
+    if (text.length > 4000)
+      throw new RequestError("Consultation request too long")
+    if (localMessagingDisabled())
+      return Response.json({ message: "Sent successfully" })
+    const { error } = await new Resend(process.env.RESEND_API_KEY).emails.send({
+      from: "admin@dsc.ac",
+      to: "consult@dsc.ac",
+      replyTo: values.email,
+      subject: "New consultation request",
+      html: `<p>${escapeContactHtml(text).replace(/\n/g, "<br>")}</p>`,
+    })
+    if (error) throw new Error("Delivery failed")
     const response = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendMessage`,
+      `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          chat_id: '-1003957107896',
-          text: message,
-          parse_mode: "Markdown"
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: "-1003957107896", text }),
+        signal: AbortSignal.timeout(10_000),
       }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return Response.json(
-        {
-          error: "Telegram API error",
-          telegram: data,
-        },
-        { status: response.status }
-      );
-    }
-
-    return Response.json({ message: "Sent sucessfully" })
-
+    )
+    if (!response.ok || !(await response.json()).ok)
+      throw new Error("Delivery failed")
+    return Response.json({ message: "Sent successfully" })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error"
-    return Response.json({ error: message }, { status: 500 })
+    return messagingError(error)
   }
 }

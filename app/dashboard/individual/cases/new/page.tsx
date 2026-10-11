@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select"
 import { useLang } from "@/lib/lang-context"
 import { t } from "@/lib/i18n"
-import { PORTALS, getPortalById } from "@/lib/portals"
+import { usePortals } from "@/hooks/usePortals"
 import { trainingProgramsCollection } from "@/lib/pb-training"
 import type { TrainingProgram } from "@/types/training"
 import { type PortalServiceValue } from "@/components/register/PortalServiceSelector"
@@ -57,6 +57,8 @@ export default function NewProfilePage() {
   const router = useRouter()
   const { currentUser } = useAuth()
   const { lang } = useLang()
+  const { portals: PORTALS } = usePortals()
+  const getPortalById = (id: string) => PORTALS.find((portal) => portal.id === id)
   const { addProfile } = useProfiles()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -173,7 +175,7 @@ export default function NewProfilePage() {
         try {
           const individualProfile = await pb
             .collection("individual_profiles")
-            .getFirstListItem(`user = "${currentUser.id}"`)
+            .getFirstListItem(pb.filter("user = {:value0}", { value0: currentUser.id }))
           profileDob = (individualProfile.date_of_birth as string) || ""
           profileGender =
             (individualProfile.gender as "male" | "female" | undefined) ||
@@ -235,7 +237,7 @@ export default function NewProfilePage() {
 
       fetch("/api/telegram-notify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${pb.authStore.token}` },
         body: JSON.stringify({
           text: [
             "*New Case Needs Payment Amount*",

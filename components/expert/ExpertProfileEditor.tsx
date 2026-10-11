@@ -1,5 +1,7 @@
 "use client"
 
+import { ExpertPublicDetailsFields } from "@/components/expert/ExpertPublicDetailsFields"
+
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
   Briefcase,
@@ -56,6 +58,8 @@ import {
   ACADEMIC_DEGREES,
   AGE_GROUPS,
   CONSULTATION_MODES,
+  ageGroupLabel,
+  consultationModeLabel,
   MAX_ATTACHMENT_BYTES,
   MAX_ATTACHMENT_MB,
 } from "@/lib/expert-options"
@@ -63,6 +67,7 @@ import { ProfileAvatar } from "@/components/profile/ProfileAvatar"
 import {
   SPECIALIZATION_OPTIONS,
   specializationLabel,
+  degreeLabel,
 } from "@/components/team/team-labels"
 import type { ExpertProfileDraft } from "@/types/expert"
 
@@ -354,7 +359,7 @@ export function ExpertProfileEditor({
 
           <div className="space-y-2">
             <Label htmlFor="profile-city">
-              {t({ en: "City", ar: "المدينة" }, lang)}
+              {t({ en: "City of Residence", ar: "مدينة الإقامة" }, lang)}
             </Label>
             <Input
               id="profile-city"
@@ -390,7 +395,9 @@ export function ExpertProfileEditor({
                 type="tel"
                 className="flex-1"
                 value={draft.whatsappNumber}
-                onChange={(event) => patch({ whatsappNumber: event.target.value })}
+                onChange={(event) =>
+                  patch({ whatsappNumber: event.target.value })
+                }
                 placeholder={t(
                   { en: "e.g. 55 000 0000", ar: "مثال: 55 000 0000" },
                   lang
@@ -411,10 +418,7 @@ export function ExpertProfileEditor({
             </span>
             <div>
               <CardTitle>
-                {t(
-                  { en: "Academic Background", ar: "الخلفية العلمية" },
-                  lang
-                )}
+                {t({ en: "Academic Background", ar: "الخلفية العلمية" }, lang)}
               </CardTitle>
               <CardDescription>
                 {t({ en: "Your qualifications", ar: "مؤهلاتك العلمية" }, lang)}
@@ -445,7 +449,7 @@ export function ExpertProfileEditor({
               <SelectContent position="popper" className="max-h-60!">
                 {ACADEMIC_DEGREES.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {degreeLabel(option.value, lang)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -530,7 +534,9 @@ export function ExpertProfileEditor({
                   type="button"
                   variant="outline"
                   role="combobox"
-                  aria-invalid={fieldErrors.specialization_type ? true : undefined}
+                  aria-invalid={
+                    fieldErrors.specialization_type ? true : undefined
+                  }
                   className="h-auto min-h-10 w-full justify-between"
                 >
                   <div className="flex flex-wrap gap-1">
@@ -646,7 +652,7 @@ export function ExpertProfileEditor({
               <SelectContent position="popper" className="max-h-60!">
                 {CONSULTATION_MODES.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {consultationModeLabel(option.value, lang)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -655,9 +661,7 @@ export function ExpertProfileEditor({
           </div>
 
           <div className="space-y-2">
-            <Label>
-              {t({ en: "Age Group", ar: "الفئة العمرية" }, lang)}
-            </Label>
+            <Label>{t({ en: "Age Group", ar: "الفئة العمرية" }, lang)}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -753,7 +757,7 @@ export function ExpertProfileEditor({
                                 : "opacity-0"
                             )}
                           />
-                          {option.label}
+                          {ageGroupLabel(option.value, lang)}
                         </CommandItem>
                       ))}
                     </CommandGroup>
@@ -766,10 +770,7 @@ export function ExpertProfileEditor({
 
           <div className="space-y-2">
             <Label htmlFor="profile-fee">
-              {t(
-                { en: "First Session Fee", ar: "رسوم الجلسة الأولى" },
-                lang
-              )}
+              {t({ en: "First Session Fee", ar: "رسوم الجلسة الأولى" }, lang)}
             </Label>
             <Input
               id="profile-fee"
@@ -815,23 +816,70 @@ export function ExpertProfileEditor({
           </div>
         </CardHeader>
         <CardContent>
-          <Label htmlFor="profile-bio" className="sr-only">
-            {t({ en: "Message", ar: "رسالة" }, lang)}
-          </Label>
-          <Textarea
-            id="profile-bio"
-            rows={5}
-            value={draft.bio}
-            onChange={(event) => patch({ bio: event.target.value })}
-            placeholder={t(
-              {
-                en: "Tell us about your expertise and why you'd like to join...",
-                ar: "أخبرنا عن خبرتك ولماذا ترغب في الانضمام...",
-              },
-              lang
-            )}
-          />
-          {errorFor("bio")}
+          <div className="mb-6">
+            <ExpertPublicDetailsFields values={draft} onChange={patch} />
+          </div>
+          <div className="space-y-5">
+            {(
+              [
+                {
+                  key: "short_bio_en",
+                  draftKey: "shortBioEn",
+                  value: draft.shortBioEn,
+                  dir: "ltr",
+                  label: t(
+                    {
+                      en: "Short biography (English)",
+                      ar: "نبذة قصيرة بالإنجليزية",
+                    },
+                    lang
+                  ),
+                },
+                {
+                  key: "short_bio_ar",
+                  draftKey: "shortBioAr",
+                  value: draft.shortBioAr,
+                  dir: "rtl",
+                  label: t(
+                    {
+                      en: "Short biography (Arabic)",
+                      ar: "نبذة قصيرة بالعربية",
+                    },
+                    lang
+                  ),
+                },
+              ] as const
+            ).map((field) => (
+              <div key={field.key} className="space-y-2">
+                <Label htmlFor={`profile-${field.key}`}>{field.label}</Label>
+                <Textarea
+                  id={`profile-${field.key}`}
+                  dir={field.dir}
+                  rows={4}
+                  maxLength={250}
+                  value={field.value}
+                  onChange={(event) =>
+                    patch({ [field.draftKey]: event.target.value })
+                  }
+                  aria-describedby={`profile-${field.key}-count`}
+                />
+                <p
+                  id={`profile-${field.key}-count`}
+                  className="text-xs text-muted-foreground"
+                >
+                  {field.value.length}/250 ·{" "}
+                  {t(
+                    {
+                      en: "Maximum 250 characters, including spaces and punctuation.",
+                      ar: "250 حرفًا كحد أقصى، بما في ذلك المسافات وعلامات الترقيم.",
+                    },
+                    lang
+                  )}
+                </p>
+                {errorFor(field.key)}
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
@@ -884,7 +932,10 @@ export function ExpertProfileEditor({
             </Button>
             {pendingSize > 0 && (
               <span className="text-xs text-muted-foreground">
-                {t({ en: "Pending uploads:", ar: "ملفات بانتظار الرفع:" }, lang)}{" "}
+                {t(
+                  { en: "Pending uploads:", ar: "ملفات بانتظار الرفع:" },
+                  lang
+                )}{" "}
                 {(pendingSize / 1024 / 1024).toFixed(1)}MB
               </span>
             )}
@@ -922,7 +973,9 @@ export function ExpertProfileEditor({
                     lang
                   )}
                   onClick={() =>
-                    patch({ keptCv: draft.keptCv.filter((item) => item !== filename) })
+                    patch({
+                      keptCv: draft.keptCv.filter((item) => item !== filename),
+                    })
                   }
                 >
                   <X className="h-4 w-4" />

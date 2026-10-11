@@ -7,6 +7,9 @@ export type AssignmentStatus =
   | "completed"
 
 export interface CaseTool {
+  assigned_expert?: string
+  specialization?: string
+  task_brief?: string
   id: string
   case: string
   type: string // tool_type relation ID (e.g., "pbc_xxxxx" for "plan")

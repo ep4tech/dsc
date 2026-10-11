@@ -1,3 +1,4 @@
+import { boundedFullList } from "@/lib/bounded-records"
 import pb from "@/lib/pb"
 import type { BlogPage as BlogPost, BlogCategory } from "@/types/cms"
 import { BlogListing, type ListingPost } from "./BlogListing"
@@ -8,10 +9,9 @@ export default async function BlogPage() {
   let fetchFailed = false
   try {
     const [catRecords, records] = await Promise.all([
-      pb.collection("blog_categories").getFullList(),
-      pb
-        .collection("blog_pages")
-        .getFullList({ filter: "is_published = true", sort: "-created" }),
+      boundedFullList(pb.collection("blog_categories")),
+      boundedFullList(pb
+        .collection("blog_pages"), { filter: "is_published = true", sort: "-created" }),
     ])
     categories = catRecords.map((record) => ({
       id: record.id,

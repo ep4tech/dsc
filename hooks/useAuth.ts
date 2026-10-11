@@ -40,11 +40,9 @@ export function useAuth() {
   }, [])
 
   useEffect(() => {
-    refreshAuth()
-
     const unsubscribe = pb.authStore.onChange(() => {
       refreshAuth()
-    })
+    }, true)
 
     return () => {
       unsubscribe()
@@ -79,7 +77,7 @@ export function useAuth() {
       }
       refreshAuth()
       return { success: true as const, role: user.role }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const status = (error as { status?: number } | null)?.status
       if (status === 400 || status === 401) {
         return {

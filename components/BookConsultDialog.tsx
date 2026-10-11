@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import styles from "@/components/internal/internal-theme.module.css"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -29,7 +30,7 @@ import {
   PortalServiceSelector,
   type PortalServiceValue,
 } from "@/components/register/PortalServiceSelector"
-import { getPortalById } from "@/lib/portals"
+import { usePortals } from "@/hooks/usePortals"
 import { formatDate } from "@/lib/format-date"
 import { t } from "@/lib/i18n"
 import { useLang } from "@/lib/lang-context"
@@ -45,13 +46,14 @@ interface Props {
 }
 
 export function BookConsultDialog({ open, onOpenChange }: Props) {
-
   const [name, setName] = useState("")
   const [countryCode, setCountryCode] = useState("")
   const [contact, setContact] = useState("")
   const [email, setEmail] = useState("")
   const [description, setDescription] = useState("")
-  const [consultationType, setConsultationType] = useState<"online" | "face-to-face" | "">("")
+  const [consultationType, setConsultationType] = useState<
+    "online" | "face-to-face" | ""
+  >("")
   const [preferredDate, setPreferredDate] = useState("")
   const [preferredTime, setPreferredTime] = useState("")
   const [portalService, setPortalService] = useState<PortalServiceValue>({
@@ -66,6 +68,9 @@ export function BookConsultDialog({ open, onOpenChange }: Props) {
 
   const router = useRouter()
   const { lang } = useLang()
+  const { portals: PORTALS } = usePortals()
+  const getPortalById = (id: string) =>
+    PORTALS.find((portal) => portal.id === id)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -89,31 +94,6 @@ export function BookConsultDialog({ open, onOpenChange }: Props) {
       const cleanEmail = normalizeEmail(email)
       const cleanContact = `${countryCode} ${contact.trim()}`.trim()
 
-      const html = [
-        t({ en: "<h2>New Consultation Request</h2>", ar: "<h2>طلب استشارة جديد</h2>" }, lang),
-        `<p><strong>${t({ en: "Name:", ar: "الاسم:" }, lang)}</strong> ${cleanName}</p>`,
-        `<p><strong>${t({ en: "Contact:", ar: "التواصل:" }, lang)}</strong> ${cleanContact}</p>`,
-        `<p><strong>${t({ en: "Email:", ar: "البريد الإلكتروني:" }, lang)}</strong> ${cleanEmail}</p>`,
-        caseType ? `<p><strong>${t({ en: "Issue Type:", ar: "نوع المشكلة:" }, lang)}</strong> ${caseType}</p>` : "",
-        issueType ? `<p><strong>${t({ en: "Service Type:", ar: "نوع الخدمة:" }, lang)}</strong> ${issueType}</p>` : "",
-        consultationType ? `<p><strong>${t({ en: "Consultation Type:", ar: "نوع الاستشارة:" }, lang)}</strong> ${consultationType === "online" ? t({ en: "Online", ar: "أونلاين" }, lang) : t({ en: "Face to Face", ar: "وجهاً لوجه" }, lang)}</p>` : "",
-        preferredDate ? `<p><strong>${t({ en: "Preferred Date:", ar: "التاريخ المفضل:" }, lang)}</strong> ${formatDate(preferredDate)}</p>` : "",
-        preferredTime ? `<p><strong>${t({ en: "Preferred Time:", ar: "الوقت المفضل:" }, lang)}</strong> ${preferredTime}</p>` : "",
-        description ? `<p><strong>${t({ en: "Description:", ar: "الوصف:" }, lang)}</strong><br/>${description.trim()}</p>` : "",
-      ].join("\n")
-
-      const response = await fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "admin@dsc.ac",
-          to: cleanEmail,
-          cc: "consult@dsc.ac",
-          subject: t({ en: `Consultation request from: ${cleanName}`, ar: `طلب استشارة من: ${cleanName}` }, lang),
-          html,
-        }),
-      })
-
       const message_response = await fetch("/api/send-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -130,13 +110,14 @@ export function BookConsultDialog({ open, onOpenChange }: Props) {
         }),
       })
 
-      if (!response.ok || !message_response.ok) {
-        throw new Error(t({ en: "Failed to send request", ar: "فشل إرسال الطلب" }, lang))
+      if (!message_response.ok) {
+        throw new Error(
+          t({ en: "Failed to send request", ar: "فشل إرسال الطلب" }, lang)
+        )
       }
 
       setDone(true)
       router.push("https://wa.me/message/XGN76UVRTVL7C1")
-
     } catch (err) {
       setError(getErrorMessage(err, lang))
     } finally {
@@ -169,33 +150,54 @@ export function BookConsultDialog({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-h-[85dvh] overflow-y-auto overscroll-contain sm:max-w-md">
-        <DialogHeader>
+      <DialogContent
+        className={styles.dialog}
+        dir={lang === "ar" ? "rtl" : "ltr"}
+      >
+        <DialogHeader className={styles.dialogHeader}>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            {t({ en: "Quick Free Consultation", ar: "استشارة مجانية سريعة" }, lang)}
+            {t(
+              { en: "Quick Free Consultation", ar: "استشارة مجانية سريعة" },
+              lang
+            )}
           </DialogTitle>
 
           <DialogDescription>
             {t(
-              { en: "Fill in your details and we'll get back to you.", ar: "املأ بياناتك وسنعاود التواصل معك." },
+              {
+                en: "Fill in your details and we'll get back to you.",
+                ar: "املأ بياناتك وسنعاود التواصل معك.",
+              },
               lang
             )}
           </DialogDescription>
-
         </DialogHeader>
         {done ? (
-          <div className="py-6 text-center text-sm text-green-600">
+          <div className={styles.success}>
             {t(
-              { en: "Your consultation request has been sent successfully! We'll contact you within 48 hours.", ar: "تم إرسال طلب الاستشارة بنجاح! سنتواصل معك خلال 48 ساعة." },
+              {
+                en: "Your consultation request has been sent successfully! We'll contact you within 48 hours.",
+                ar: "تم إرسال طلب الاستشارة بنجاح! سنتواصل معك خلال 48 ساعة.",
+              },
               lang
             )}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <form
+            onSubmit={handleSubmit}
+            className={`${styles.dialogBody} ${styles.form} space-y-5`}
+            noValidate
+          >
             <div>
-              <label className="mb-1 block text-sm font-medium">{t({ en: "Name", ar: "الاسم" }, lang)}</label>
+              <label
+                htmlFor="consult-name"
+                className="mb-1 block text-sm font-medium"
+              >
+                {t({ en: "Name", ar: "الاسم" }, lang)}
+              </label>
               <Input
+                id="consult-name"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -204,36 +206,60 @@ export function BookConsultDialog({ open, onOpenChange }: Props) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">{t({ en: "Contact", ar: "التواصل" }, lang)}</label>
+              <label
+                htmlFor="consult-contact"
+                className="mb-1 block text-sm font-medium"
+              >
+                {t({ en: "Contact", ar: "التواصل" }, lang)}
+              </label>
               <div className="flex gap-2">
+                <Select value={countryCode} onValueChange={setCountryCode}>
+                  <SelectTrigger
+                    aria-label={t(
+                      { en: "Country calling code", ar: "رمز الاتصال الدولي" },
+                      lang
+                    )}
+                    className={`w-40 ${styles.phoneCode}`}
+                  >
+                    <SelectValue placeholder="+966" />
+                  </SelectTrigger>
+                  <SelectContent
+                    position="popper"
+                    sideOffset={4}
+                    className="max-h-60! w-40 overflow-y-auto"
+                  >
+                    {COUNTRY_CODES.map((c) => (
+                      <SelectItem key={c.value} value={c.dialCode}>
+                        {t(c.label, lang)} ({c.dialCode})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-               <Select value={countryCode} onValueChange={setCountryCode}>
-                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="+966" />
-                 </SelectTrigger>
-                 <SelectContent position="popper" sideOffset={4} className="max-h-60! overflow-y-auto w-40">
-                   {COUNTRY_CODES.map((c) => (
-                     <SelectItem key={c.value} value={c.dialCode}>
-                       {t(c.label, lang)} ({c.dialCode})
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-
-               <Input
-                value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                autoComplete="tel"
-                inputMode="tel"
-                placeholder={t({ en: "Phone number", ar: "رقم الهاتف" }, lang)}
-                className="flex-1"
-              />
+                <Input
+                  id="consult-contact"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  autoComplete="tel"
+                  inputMode="tel"
+                  placeholder={t(
+                    { en: "Phone number", ar: "رقم الهاتف" },
+                    lang
+                  )}
+                  className="min-w-0 flex-1"
+                />
               </div>
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">{t({ en: "Email", ar: "البريد الإلكتروني" }, lang)}</label>
+              <label
+                htmlFor="consult-email"
+                className="mb-1 block text-sm font-medium"
+              >
+                {t({ en: "Email", ar: "البريد الإلكتروني" }, lang)}
+              </label>
               <EmailInput
+                id="consult-email"
                 required
                 value={email}
                 onChange={setEmail}
@@ -248,32 +274,57 @@ export function BookConsultDialog({ open, onOpenChange }: Props) {
               issueTypeMode="text"
             />
 
-            <div className="space-y-3">
+            <div className="space-y-4 border-t border-border pt-5">
               <p className="text-sm font-medium">
-                {t({ en: "Consultation Preferences", ar: "تفضيلات الاستشارة" }, lang)}
+                {t(
+                  { en: "Consultation Preferences", ar: "تفضيلات الاستشارة" },
+                  lang
+                )}
               </p>
               <div>
-                <Label className="mb-1 block text-sm font-medium">
+                <Label
+                  htmlFor="consult-type"
+                  className="mb-1 block text-sm font-medium"
+                >
                   {t({ en: "Type", ar: "النوع" }, lang)}
                 </Label>
                 <Select
                   value={consultationType}
-                  onValueChange={(v: "online" | "face-to-face") => setConsultationType(v)}
+                  onValueChange={(v: "online" | "face-to-face") =>
+                    setConsultationType(v)
+                  }
                 >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder={t({ en: "Select type", ar: "اختر النوع" }, lang)} />
+                  <SelectTrigger id="consult-type" className="w-full">
+                    <SelectValue
+                      placeholder={t(
+                        { en: "Select type", ar: "اختر النوع" },
+                        lang
+                      )}
+                    />
                   </SelectTrigger>
-                  <SelectContent position="popper" sideOffset={4} className="overflow-y-auto">
-                    <SelectItem value="online">{t({ en: "Online", ar: "أونلاين" }, lang)}</SelectItem>
-                    <SelectItem value="face-to-face">{t({ en: "Face to Face", ar: "وجهاً لوجه" }, lang)}</SelectItem>
+                  <SelectContent
+                    position="popper"
+                    sideOffset={4}
+                    className="overflow-y-auto"
+                  >
+                    <SelectItem value="online">
+                      {t({ en: "Online", ar: "أونلاين" }, lang)}
+                    </SelectItem>
+                    <SelectItem value="face-to-face">
+                      {t({ en: "Face to Face", ar: "وجهاً لوجه" }, lang)}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="mb-1 block text-sm font-medium">
+                <Label
+                  htmlFor="consult-date"
+                  className="mb-1 block text-sm font-medium"
+                >
                   {t({ en: "Preferred Date", ar: "التاريخ المفضل" }, lang)}
                 </Label>
                 <DateInput
+                  id="consult-date"
                   value={preferredDate}
                   onChange={setPreferredDate}
                   className="w-full"
@@ -281,10 +332,14 @@ export function BookConsultDialog({ open, onOpenChange }: Props) {
                 />
               </div>
               <div>
-                <Label className="mb-1 block text-sm font-medium">
+                <Label
+                  htmlFor="consult-time"
+                  className="mb-1 block text-sm font-medium"
+                >
                   {t({ en: "Preferred Time", ar: "الوقت المفضل" }, lang)}
                 </Label>
                 <Input
+                  id="consult-time"
                   type="time"
                   value={preferredTime}
                   onChange={(e) => setPreferredTime(e.target.value)}
@@ -294,21 +349,35 @@ export function BookConsultDialog({ open, onOpenChange }: Props) {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label
+                htmlFor="consult-description"
+                className="mb-1 block text-sm font-medium"
+              >
                 {t({ en: "Description", ar: "الوصف" }, lang)}
               </label>
               <Textarea
+                id="consult-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t(
-                  { en: "Briefly describe what you need help with", ar: "صف بإيجاز ما تحتاج مساعدة فيه" },
+                  {
+                    en: "Briefly describe what you need help with",
+                    ar: "صف بإيجاز ما تحتاج مساعدة فيه",
+                  },
                   lang
                 )}
                 rows={4}
               />
             </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <p
+                role="alert"
+                className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-500"
+              >
+                {error}
+              </p>
+            )}
             <Button type="submit" disabled={submitting} className="w-full">
               {submitting ? (
                 <>

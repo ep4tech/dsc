@@ -1,8 +1,15 @@
 "use client"
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
 import { Button } from "@/components/ui/button"
-import { Loader2, Save, RotateCcw } from "lucide-react"
+import { Loader2, Save, RotateCcw, Code2, Pencil } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/pb"
 import { UI_STRINGS, t } from "@/lib/i18n"
@@ -35,11 +42,13 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const { lang } = useLang()
   const containerRef = useRef<HTMLDivElement>(null)
-  const editorRef = useRef<any>(null)
+  const editorRef = useRef<SunEditor.Instance | null>(null)
   const onImageUploadRef = useRef(onImageUpload)
   const onChangeRef = useRef(onChange)
   const lastSyncedInitialContent = useRef<string>("")
   const [content, setContent] = useState(initialContent)
+  const [mode, setMode] = useState<"visual" | "html">("visual")
+  const [editorReady, setEditorReady] = useState(false)
 
   // Keep callback refs up-to-date without re-creating the editor
   useEffect(() => {
@@ -51,7 +60,7 @@ export function RichTextEditor({
 
   // Create editor once on mount
   useEffect(() => {
-    let instance: any
+    let instance: SunEditor.Instance | undefined
 
     const init = async () => {
       if (!containerRef.current) return
@@ -92,7 +101,7 @@ export function RichTextEditor({
           "|",
           ["hr", "table", "link", "image", "video"],
           "|",
-          ["fullScreen", "showBlocks", "codeView"],
+          ["fullScreen", "showBlocks"],
         ],
         events: {
           onChange: (params: { data: string }) => {
@@ -100,12 +109,12 @@ export function RichTextEditor({
             lastSyncedInitialContent.current = params.data
             onChangeRef.current?.(params.data)
           },
-          onImageUploadBefore: async (params: any) => {
+          onImageUploadBefore: async (params) => {
             const { info } = params
             const uploadHandler = onImageUploadRef.current
 
             // URL upload (not a file) – let v3 handle it normally
-            if (info.url && !(info.files instanceof FileList)) {
+            if (!(info.files instanceof FileList)) {
               return true
             }
 
@@ -116,7 +125,7 @@ export function RichTextEditor({
 
             try {
               const url = await uploadHandler(info.files[0])
-              const imagePlugin = instance.$.plugins.image
+              const imagePlugin = instance!.$.plugins.image
               imagePlugin.create(
                 url,
                 null,
@@ -139,6 +148,7 @@ export function RichTextEditor({
       })
 
       editorRef.current = instance
+      setEditorReady(true)
 
       if (direction === "rtl") {
         containerRef.current
@@ -165,7 +175,10 @@ export function RichTextEditor({
 
   // Update editor content when initialContent prop changes
   useEffect(() => {
-    if (editorRef.current && initialContent !== lastSyncedInitialContent.current) {
+    if (
+      editorRef.current &&
+      initialContent !== lastSyncedInitialContent.current
+    ) {
       const current = editorRef.current.$.html.get()
       if (current === initialContent) {
         lastSyncedInitialContent.current = initialContent
@@ -192,14 +205,18 @@ export function RichTextEditor({
         try {
           const hasCM = instance.$.options?.get?.("hasCodeMirror")
           if (hasCM && instance.$.contextProvider?.applyToRoots) {
-            instance.$.contextProvider.applyToRoots((e: any) => {
+            instance.$.contextProvider.applyToRoots((e) => {
               const cm = e.get("options").get("codeMirrorEditor")
               if (cm?.display?.wrapper?.isConnected) {
                 cm.toTextArea()
               }
             })
           }
-        } catch {}
+        } catch {
+          console.warn(
+            "Editor cleanup could not finish; continuing fallback cleanup"
+          )
+        }
 
         instance.destroy()
       } catch {
@@ -209,8 +226,14 @@ export function RichTextEditor({
           instance.events = null
         }
         try {
-          instance.$.kernel?._destroy?.()
-        } catch {}
+          ;(
+            instance.$ as SunEditor.Deps & {
+              kernel?: { _destroy?: () => void }
+            }
+          ).kernel?._destroy?.()
+        } catch {
+          console.warn("Editor kernel cleanup failed")
+        }
       }
 
       editorRef.current = null
@@ -218,11 +241,29 @@ export function RichTextEditor({
   }, [])
 
   const handleSave = useCallback(() => {
-    const currentContent = editorRef.current
-      ? editorRef.current.$.html.get()
-      : content
+    const currentContent =
+      mode === "visual" && editorRef.current
+        ? editorRef.current.$.html.get()
+        : content
     onSave(currentContent)
-  }, [content, onSave])
+  }, [content, mode, onSave])
+
+  const switchMode = (next: "visual" | "html") => {
+    if (next === mode || !editorRef.current) return
+    if (next === "html") {
+      const html = editorRef.current.$.html.get()
+      setContent(html)
+      lastSyncedInitialContent.current = html
+      onChangeRef.current?.(html)
+    } else {
+      editorRef.current.$.html.set(content)
+      const html = editorRef.current.$.html.get()
+      setContent(html)
+      lastSyncedInitialContent.current = html
+      onChangeRef.current?.(html)
+    }
+    setMode(next)
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -247,7 +288,62 @@ export function RichTextEditor({
           </div>
         </div>
       )}
-      <div ref={containerRef} className="rounded-md border" />
+      <div
+        className="flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label={t({ en: "Editor mode", ar: "وضع التحرير" }, lang)}
+      >
+        <Button
+          type="button"
+          variant={mode === "visual" ? "default" : "outline"}
+          aria-pressed={mode === "visual"}
+          disabled={!editorReady || isSaving}
+          onClick={() => switchMode("visual")}
+        >
+          <Pencil className="h-4 w-4" />{" "}
+          {t({ en: "Visual (WYSIWYG)", ar: "المحرر المرئي" }, lang)}
+        </Button>
+        <Button
+          type="button"
+          variant={mode === "html" ? "default" : "outline"}
+          aria-pressed={mode === "html"}
+          disabled={!editorReady || isSaving}
+          onClick={() => switchMode("html")}
+        >
+          <Code2 className="h-4 w-4" /> HTML
+        </Button>
+      </div>
+      <div
+        ref={containerRef}
+        className="rounded-md border"
+        hidden={mode === "html"}
+      />
+      {mode === "html" && (
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {t(
+              {
+                en: "Copy, paste, or edit HTML here. Switch to Visual to view the formatted content.",
+                ar: "انسخ أو الصق أو عدّل HTML هنا. انتقل إلى المحرر المرئي لعرض المحتوى المنسّق.",
+              },
+              lang
+            )}
+          </p>
+          <Textarea
+            aria-label={t({ en: "HTML source", ar: "مصدر HTML" }, lang)}
+            dir="ltr"
+            spellCheck={false}
+            className="min-h-[400px] font-mono text-sm"
+            value={content}
+            onChange={(event) => {
+              const html = event.target.value
+              setContent(html)
+              lastSyncedInitialContent.current = html
+              onChangeRef.current?.(html)
+            }}
+          />
+        </div>
+      )}
       {!title && (
         <div className="flex justify-end gap-2">
           {onDiscard && (

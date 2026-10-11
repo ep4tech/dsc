@@ -45,3 +45,8 @@ scripts/*
 dsc_billing.csv
 
 plans
+# local runtime and generated Python cache
+__pycache__/
+*.py[cod]
+pb_data/
+pb_backups/

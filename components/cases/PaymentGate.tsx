@@ -95,7 +95,7 @@ export function PaymentGate({
       await submitPaymentSlip(profile.id, selectedFile)
       fetch("/api/telegram-notify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${pb.authStore.token}` },
         body: JSON.stringify({
           text: [
             "*Payment Slip Uploaded - Needs Review*",

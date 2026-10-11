@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { PORTALS } from "@/lib/portals"
+import { PageLoader } from "@/components/ui/page-loader"
+import { DataError } from "@/components/ui/data-error"
+import { usePortals } from "@/hooks/usePortals"
 import { infoPagesCollection } from "@/lib/pb-collections"
 import type { InfoPage } from "@/types/cms"
 import { Card } from "@/components/ui/card"
@@ -11,6 +13,7 @@ import { useLang } from "@/lib/lang-context"
 
 export default function CmsInfoPage() {
   const { lang } = useLang()
+  const { portals: PORTALS, isLoading: portalsLoading, error, reload } = usePortals()
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
 
@@ -42,6 +45,9 @@ export default function CmsInfoPage() {
         </p>
       </div>
 
+      {portalsLoading && <PageLoader />}
+      {error && <DataError message={lang === "ar" ? "تعذر تحميل البوابات." : "Unable to load portals."} onRetry={() => void reload()} />}
+      {!portalsLoading && !error && PORTALS.length === 0 && <p>{lang === "ar" ? "لا توجد بوابات متاحة." : "No portals available."}</p>}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {PORTALS.map((portal) => (
           <Link key={portal.id} href={`/cms/info/${portal.id}`}>

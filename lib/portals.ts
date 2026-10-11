@@ -8,6 +8,12 @@ export interface PortalService {
 
 export interface Portal {
   id: string;
+  recordId?: string;
+  icon?: string;
+  picture?: string;
+  isDeleted?: boolean;
+  order?: number;
+  registrationType?: "parent" | "individual" | "organization" | "expert";
   title: BilingualString; 
   portalName: BilingualString;
   tagline: BilingualString;
@@ -24,7 +30,7 @@ export interface Portal {
   services: PortalService[];
 }
 
-export const PORTALS: Portal[] = [
+export const DEFAULT_PORTALS: Portal[] = [
   {
     id: "1",
     title: { en: "Special Needs", ar: "الاحتياجات الخاصة" },
@@ -251,7 +257,3 @@ export const PORTALS: Portal[] = [
     ],
   },
 ];
-
-export function getPortalById(id: string): Portal | undefined {
-  return PORTALS.find((p) => p.id === id);
-}

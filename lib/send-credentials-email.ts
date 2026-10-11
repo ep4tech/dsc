@@ -1,5 +1,8 @@
 "use client"
 
+import { escapeContactHtml } from "@/lib/contact-validation"
+import pb from "@/lib/pb"
+
 export async function sendCredentialsEmail(params: {
   email: string
   name: string
@@ -7,7 +10,15 @@ export async function sendCredentialsEmail(params: {
   caseName?: string
   caseUrl?: string
 }): Promise<void> {
-  const { email, name, password, caseName, caseUrl } = params
+  const email = escapeContactHtml(params.email)
+  const name = escapeContactHtml(params.name)
+  const password = escapeContactHtml(params.password)
+  const caseName = params.caseName
+    ? escapeContactHtml(params.caseName)
+    : undefined
+  const caseUrl = params.caseUrl
+    ? escapeContactHtml(new URL(params.caseUrl, window.location.origin).href)
+    : undefined
   const loginUrl = `${window.location.origin}/login`
 
   const caseLink = caseUrl
@@ -34,10 +45,13 @@ export async function sendCredentialsEmail(params: {
 
   const response = await fetch("/api/send-email", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${pb.authStore.token}`,
+    },
     body: JSON.stringify({
       from: "admin@dsc.ac",
-      to: email,
+      to: params.email,
       subject: caseName
         ? `Your DSC account for case "${caseName}"`
         : "Your DSC account credentials",

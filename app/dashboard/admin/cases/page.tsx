@@ -1,11 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { useProfiles } from "@/hooks/useProfiles"
 import { useAssignments } from "@/hooks/useAssignments"
 import { useLang } from "@/lib/lang-context"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -62,15 +68,11 @@ export default function AdminCasesPage() {
   const { profiles, isLoading: isProfilesLoading } = useProfiles()
   const { assignments, isLoading: isAssignmentsLoading } = useAssignments()
 
-  const [assignmentCounts, setAssignmentCounts] = useState<
-    Record<string, AssignmentCount>
-  >({})
-
   const [searchQuery, setSearchQuery] = useState("")
   const [sortField, setSortField] = useState<CaseSortField>("name")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
 
-  useEffect(() => {
+  const assignmentCounts = useMemo(() => {
     const counts: Record<string, AssignmentCount> = {}
     assignments.forEach((a) => {
       if (!counts[a.case]) {
@@ -88,7 +90,7 @@ export default function AdminCasesPage() {
       else if (a.status === "in_progress") counts[a.case].in_progress++
       else if (a.status === "completed") counts[a.case].completed++
     })
-    setAssignmentCounts(counts)
+    return counts
   }, [assignments])
 
   const isLoading = isProfilesLoading || isAssignmentsLoading
@@ -120,9 +122,7 @@ export default function AdminCasesPage() {
       return sortDirection === "asc" ? cmp : -cmp
     }
 
-    const cmp = getVal(a)
-      .toLowerCase()
-      .localeCompare(getVal(b).toLowerCase())
+    const cmp = getVal(a).toLowerCase().localeCompare(getVal(b).toLowerCase())
     return sortDirection === "asc" ? cmp : -cmp
   })
 
@@ -181,7 +181,7 @@ export default function AdminCasesPage() {
       {/* Search & Sort */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={
               lang === "ar"
@@ -194,7 +194,7 @@ export default function AdminCasesPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="whitespace-nowrap text-sm text-muted-foreground">
+          <span className="text-sm whitespace-nowrap text-muted-foreground">
             {lang === "ar" ? "ترتيب حسب" : "Sort by"}
           </span>
           <Select value={sortField} onValueChange={handleSortFieldChange}>
@@ -270,7 +270,9 @@ export default function AdminCasesPage() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>{lang === "ar" ? "جميع الحالات" : "All Cases"}</CardTitle>
+            <CardTitle>
+              {lang === "ar" ? "جميع الحالات" : "All Cases"}
+            </CardTitle>
             <CardDescription>
               {lang === "ar"
                 ? `تم العثور على ${sortedProfiles.length} حالة`
@@ -291,11 +293,11 @@ export default function AdminCasesPage() {
                     {lang === "ar" ? "تاريخ الإضافة" : "Date Added"}
                   </TableHead>
                   <TableHead>{lang === "ar" ? "الجنس" : "Gender"}</TableHead>
-                  <TableHead>{lang === "ar" ? "الصف الدراسي" : "Grade"}</TableHead>
-                  <TableHead>{lang === "ar" ? "المستخدم" : "User"}</TableHead>
                   <TableHead>
-                    {lang === "ar" ? "الحالة" : "Status"}
+                    {lang === "ar" ? "الصف الدراسي" : "Grade"}
                   </TableHead>
+                  <TableHead>{lang === "ar" ? "المستخدم" : "User"}</TableHead>
+                  <TableHead>{lang === "ar" ? "الحالة" : "Status"}</TableHead>
                   <TableHead>
                     {lang === "ar" ? "التعيينات" : "Assignments"}
                   </TableHead>
@@ -321,7 +323,9 @@ export default function AdminCasesPage() {
                           {profile.name}
                         </div>
                       </TableCell>
-                      <TableCell>{formatDate(profile.date_of_birth || "")}</TableCell>
+                      <TableCell>
+                        {formatDate(profile.date_of_birth || "")}
+                      </TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">
                         {formatDateTime(profile.created)}
                       </TableCell>
@@ -353,7 +357,9 @@ export default function AdminCasesPage() {
                         <div className="flex flex-wrap items-center gap-1">
                           {counts.total === 0 ? (
                             <span className="text-sm text-muted-foreground">
-                              {lang === "ar" ? "لا توجد تعيينات" : "No assignments"}
+                              {lang === "ar"
+                                ? "لا توجد تعيينات"
+                                : "No assignments"}
                             </span>
                           ) : (
                             <>
@@ -384,7 +390,9 @@ export default function AdminCasesPage() {
                                   className="bg-purple-50 text-purple-700"
                                 >
                                   {counts.in_progress}{" "}
-                                  {lang === "ar" ? "قيد التنفيذ" : "in progress"}
+                                  {lang === "ar"
+                                    ? "قيد التنفيذ"
+                                    : "in progress"}
                                 </Badge>
                               )}
                               {counts.completed > 0 && (
@@ -402,7 +410,9 @@ export default function AdminCasesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <SmartLink href={`/dashboard/admin/cases/${profile.id}`}>
+                        <SmartLink
+                          href={`/dashboard/admin/cases/${profile.id}`}
+                        >
                           <Button variant="ghost" size="sm">
                             <Eye className="me-1 h-4 w-4" />
                             {lang === "ar" ? "عرض" : "View"}

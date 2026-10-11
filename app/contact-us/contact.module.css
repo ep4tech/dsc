@@ -1,0 +1,304 @@
+.page {
+  --navy: #0b1a30;
+  --gold: #c4a027;
+  --ink: #14364c;
+  --muted: #536477;
+  color: var(--navy);
+  background: #fff;
+}
+.hero {
+  min-height: 194px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--navy);
+  padding: 40px 24px;
+}
+.goldRule {
+  width: 64px;
+  height: 4px;
+  background: var(--gold);
+}
+.hero h1 {
+  margin: 0;
+  font-size: clamp(34px, 4vw, 48px);
+  font-weight: 750;
+  line-height: 1.2;
+  color: white;
+  letter-spacing: -0.025em;
+}
+.content {
+  padding: 72px 24px 88px;
+}
+.layout {
+  max-width: 1120px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+}
+.heading {
+  margin-bottom: 28px;
+  min-height: 86px;
+}
+.heading h2 {
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0 0 10px;
+  letter-spacing: -0.02em;
+}
+.heading p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 470px;
+}
+.contactCard {
+  border: 1px solid #e1e7eb;
+  border-radius: 16px;
+  padding: 8px 24px;
+  background: #fff;
+  box-shadow: 0 8px 28px #0b1a3004;
+}
+.contactRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 22px 0;
+  min-height: 86px;
+  text-decoration: none;
+  border-bottom: 1px solid #edf0f2;
+}
+.contactRow:last-child {
+  border-bottom: 0;
+}
+.iconTile {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #977615;
+  background: #fbf7e9;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.contactText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.5;
+  font-size: 15px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.contactText strong {
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 650;
+}
+.contactText bdi {
+  align-self: flex-start;
+}
+.linkArrow {
+  color: #7a8b99;
+  flex: none;
+  transition:
+    transform 0.2s,
+    color 0.2s;
+}
+a.contactRow:hover .iconTile {
+  background: #f5e8b3;
+  color: #6e570f;
+}
+a.contactRow:hover .contactText bdi {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+a.contactRow:hover .linkArrow {
+  transform: translate(2px, -2px);
+  color: var(--ink);
+}
+a.contactRow:focus-visible {
+  outline: 2px solid #967619;
+  outline-offset: 5px;
+  border-radius: 6px;
+}
+.formColumn {
+  position: relative;
+}
+.formColumn::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -32px;
+  top: 20px;
+  bottom: 20px;
+  width: 1px;
+  background: #e5e9ec;
+}
+.formCard {
+  border: 1px solid #e1e7eb;
+  border-radius: 16px;
+  background: white;
+  padding: 30px;
+  box-shadow: 0 12px 36px #0b1a3006;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.form label {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.form input,
+.form button[role="combobox"] {
+  min-height: 46px;
+  border-radius: 8px;
+  padding-inline: 12px;
+  background: #fff;
+  border-color: #d6dfe5;
+  box-shadow: none;
+}
+.form input::placeholder,
+.form textarea::placeholder {
+  color: #6d7c89;
+}
+.form textarea {
+  min-height: 126px;
+  border-radius: 8px;
+  padding: 12px;
+  border-color: #d6dfe5;
+  resize: vertical;
+}
+.form input:focus-visible,
+.form textarea:focus-visible,
+.form button[role="combobox"]:focus-visible {
+  border-color: #967619;
+  outline: 2px solid #e8dbaf;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.form input[aria-invalid="true"],
+.form textarea[aria-invalid="true"],
+.form button[aria-invalid="true"] {
+  border-color: #b42318;
+}
+.form p {
+  line-height: 1.5;
+}
+.submit {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 9px;
+  background: var(--gold);
+  color: #152338;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 10px;
+  box-shadow: 0 3px 8px #8f721315;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.submit:hover {
+  background: #b49020;
+  color: #102033;
+  box-shadow: 0 4px 12px #8f721325;
+}
+.submit:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 3px;
+}
+.submit:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.error {
+  color: #b42318;
+  font-size: 14px;
+  background: #fff4f2;
+  border-radius: 8px;
+  padding: 12px;
+}
+.success {
+  padding: 56px 8px;
+  text-align: center;
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.success h3 {
+  font-size: 23px;
+  font-weight: 700;
+}
+.success p {
+  max-width: 350px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.success button {
+  min-height: 44px;
+}
+@media (max-width: 767px) {
+  .hero {
+    min-height: 156px;
+    padding: 32px 20px;
+    gap: 16px;
+  }
+  .content {
+    padding: 36px 20px 52px;
+  }
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .heading {
+    min-height: 0;
+    margin-bottom: 20px;
+  }
+  .heading h2 {
+    font-size: 23px;
+  }
+  .formColumn::before {
+    display: none;
+  }
+  .contactCard {
+    padding: 4px 18px;
+  }
+  .contactRow {
+    padding: 17px 0;
+    min-height: 80px;
+    gap: 12px;
+  }
+  .formCard {
+    padding: 22px 18px;
+  }
+  .form input,
+  .form textarea,
+  .form button[role="combobox"] {
+    font-size: 16px;
+  }
+  .success {
+    min-height: 300px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    transition: none !important;
+  }
+}

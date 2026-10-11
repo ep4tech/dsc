@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/select"
 import { t } from "@/lib/i18n"
 import { useLang } from "@/lib/lang-context"
-import { PORTALS, getPortalById, type Portal } from "@/lib/portals"
+import { usePortals } from "@/hooks/usePortals"
+import type { Portal } from "@/lib/portals"
 
 const OTHER_VALUE = "other"
 
@@ -44,6 +45,8 @@ export function PortalServiceSelector({
   issueTypeMode = "text",
 }: PortalServiceSelectorProps) {
   const { lang } = useLang()
+  const { portals: PORTALS, isLoading, error, reload } = usePortals()
+  const getPortalById = (id: string) => PORTALS.find((portal) => portal.id === id)
 
   const { categoryId, subCategoryId, customCategory, customSubCategory } = value
 
@@ -77,7 +80,7 @@ export function PortalServiceSelector({
           {t({ en: "Service Type", ar: "نوع الخدمة" }, lang)}
           {required && <span className="text-red-500 ml-1">*</span>}
         </Label>
-        <Select value={categoryId} onValueChange={handleCategoryChange}>
+        <Select disabled={isLoading} value={categoryId} onValueChange={handleCategoryChange}>
           <SelectTrigger>
             <SelectValue
               placeholder={t(
@@ -99,6 +102,7 @@ export function PortalServiceSelector({
         </Select>
       </div>
 
+      {error && <p role="alert" className="text-sm text-red-700">{lang === "ar" ? "تعذر تحميل البوابات." : "Unable to load portals."} <button type="button" className="underline" onClick={() => void reload()}>{lang === "ar" ? "إعادة المحاولة" : "Retry"}</button></p>}
       {isCustomCategory && (
         <div className="space-y-2">
           <Label>

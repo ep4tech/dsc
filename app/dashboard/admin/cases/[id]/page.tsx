@@ -1,4 +1,5 @@
 "use client"
+import { CaseFeedback } from "@/components/cases/CaseFeedback"
 
 import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -20,7 +21,7 @@ import {
 import { toast } from "sonner"
 import { sendCredentialsEmail } from "@/lib/send-credentials-email"
 import { formatDate } from "@/lib/format-date"
-import { formatAmount } from "@/lib/payment"
+
 import { CaseStatusBadge } from "@/components/cases/status-badge"
 import {
   Card,
@@ -134,7 +135,7 @@ export default function AdminCaseDetailPage({
   const [isLinking, setIsLinking] = useState(false)
   const [linkError, setLinkError] = useState<string | null>(null)
   const [linkSuccess, setLinkSuccess] = useState<string | null>(null)
-  const [amountInput, setAmountInput] = useState("")
+  const [amountInput, setAmountInput] = useState<string | null>(null)
   const [rejectInput, setRejectInput] = useState("")
   const [isPaymentBusy, setIsPaymentBusy] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
@@ -258,18 +259,19 @@ export default function AdminCaseDetailPage({
   }
 
   const handleSetAmount = async () => {
-    if (!amountInput || Number(amountInput) <= 0) return
+    if (amountInput === null || !amountInput.trim() || !Number.isFinite(Number(amountInput)) || Number(amountInput) <= 0) return
     setIsPaymentBusy(true)
     setPaymentError(null)
     setPaymentSuccess(null)
     try {
-      await setPaymentAmount(caseId, Number(amountInput))
+      if (profile?.status === "pending") await setPaymentAmount(caseId, Number(amountInput))
+      else await updateProfile(caseId, { payment_amount: Number(amountInput) })
       setPaymentSuccess(
         lang === "ar"
-          ? "تم تحديد المبلغ. الحالة الآن بانتظار الدفع."
-          : "Amount set. Case is now awaiting payment."
+          ? "تم حفظ رسوم الحالة."
+          : "Case fee saved."
       )
-      setAmountInput("")
+      setAmountInput(null)
     } catch (error) {
       setPaymentError(
         getErrorMessage(error) ||
@@ -657,13 +659,46 @@ export default function AdminCaseDetailPage({
                 )}
 
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {lang === "ar" ? "المبلغ المحدد" : "Amount"}
-                    </p>
-                    <p className="text-xl font-bold text-primary">
-                      {formatAmount(profile.payment_amount, bankDetails.currency)}
-                    </p>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor="payment_amount">
+                        {lang === "ar"
+                          ? "رسوم الحالة"
+                          : "Case fee"}
+                      </Label>
+                      <Input
+                        id="payment_amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        aria-describedby="case-fee-help"
+                        value={amountInput ?? String(profile.payment_amount ?? 0)}
+                        onChange={(e) => setAmountInput(e.target.value)}
+                        placeholder={
+                          lang === "ar" ? "أدخل المبلغ" : "Enter amount"
+                        }
+                      />
+                      <p id="case-fee-help" className="text-xs text-muted-foreground">
+                        {lang === "ar"
+                          ? `الرسوم الحالية بعملة ${bankDetails.currency}. عدّل القيمة ثم اضغط حفظ الرسوم.`
+                          : `Current fee in ${bankDetails.currency}. Edit the value, then click Save fee.`}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleSetAmount}
+                      disabled={
+                        isPaymentBusy || amountInput === null || !amountInput.trim() || !Number.isFinite(Number(amountInput)) || Number(amountInput) <= 0 || Number(amountInput) === Number(profile.payment_amount ?? 0)
+                      }
+                    >
+                      {isPaymentBusy ? (
+                        <Loader2 className="me-1 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Save className="me-1 h-4 w-4" />
+                      )}
+                      {lang === "ar"
+                        ? "حفظ الرسوم"
+                        : "Save fee"}
+                    </Button>
                   </div>
                   {profile.payment_slip && (
                     <a
@@ -682,43 +717,6 @@ export default function AdminCaseDetailPage({
                   )}
                 </div>
 
-                {profile.status === "pending" && (
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                    <div className="flex-1 space-y-2">
-                      <Label htmlFor="payment_amount">
-                        {lang === "ar"
-                          ? "مبلغ الدفع المطلوب"
-                          : "Required payment amount"}
-                      </Label>
-                      <Input
-                        id="payment_amount"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={amountInput}
-                        onChange={(e) => setAmountInput(e.target.value)}
-                        placeholder={
-                          lang === "ar" ? "أدخل المبلغ" : "Enter amount"
-                        }
-                      />
-                    </div>
-                    <Button
-                      onClick={handleSetAmount}
-                      disabled={
-                        isPaymentBusy || !amountInput || Number(amountInput) <= 0
-                      }
-                    >
-                      {isPaymentBusy ? (
-                        <Loader2 className="me-1 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Save className="me-1 h-4 w-4" />
-                      )}
-                      {lang === "ar"
-                        ? "تحديد المبلغ وإرسال"
-                        : "Set Amount & Notify"}
-                    </Button>
-                  </div>
-                )}
 
                 {profile.status === "awaiting_payment" && (
                   <p className="text-sm text-muted-foreground">
@@ -1030,6 +1028,7 @@ export default function AdminCaseDetailPage({
           </Card>
         </TabsContent>
       </Tabs>
+      <CaseFeedback caseId={profile.id} ownerId={profile.user} />
 
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

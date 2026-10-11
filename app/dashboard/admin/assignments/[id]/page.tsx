@@ -2,6 +2,10 @@
 
 import { use, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { DataError } from "@/components/ui/data-error"
+import { ExpertTaskAssignment } from "@/components/dashboard/ExpertTaskAssignment"
+import { PageLoader } from "@/components/ui/page-loader"
+import { useAuth } from "@/hooks/useAuth"
 import { useAssignments } from "@/hooks/useAssignments"
 import { useProfiles } from "@/hooks/useProfiles"
 import { useToolTypes } from "@/hooks/useToolTypes"
@@ -58,7 +62,14 @@ export default function AssignmentDetailPage({
   const { id: assignmentId } = use(params)
   const router = useRouter()
   const { lang } = useLang()
-  const { assignments } = useAssignments()
+  const {
+    assignments,
+    updateAssignment,
+    loadError: assignmentsError,
+    refresh: refreshAssignments,
+    isLoading: assignmentsLoading,
+  } = useAssignments()
+  const { currentUser } = useAuth()
   const { profiles, isLoading: profilesLoading } = useProfiles()
   const {
     toolTypes,
@@ -83,17 +94,14 @@ export default function AssignmentDetailPage({
 
   const config = assignment?.config
 
-  const isLoading = toolTypesLoading || profilesLoading
+  const isLoading = assignmentsLoading || toolTypesLoading || profilesLoading
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <p className="text-muted-foreground">
-          {lang === "ar" ? "جارٍ التحميل..." : "Loading..."}
-        </p>
-      </div>
-    )
+    return <PageLoader />
   }
+
+  if (assignmentsError)
+    return <DataError message={assignmentsError} onRetry={refreshAssignments} />
 
   if (!assignment) {
     return (
@@ -145,10 +153,7 @@ export default function AssignmentDetailPage({
             <h3 className="text-lg font-semibold">
               {(config as { title?: { en: string; ar: string } }).title?.[
                 lang
-              ] ||
-                (lang === "ar"
-                  ? "طلب إرفاق ملف"
-                  : "Request for Attachment")}
+              ] || (lang === "ar" ? "طلب إرفاق ملف" : "Request for Attachment")}
             </h3>
             <p className="mt-2 text-muted-foreground">
               {lang === "ar"
@@ -338,7 +343,13 @@ export default function AssignmentDetailPage({
       responseKeys.length === 0 &&
       (!assignment.media || assignment.media.length === 0)
     ) {
-      return <p className="text-muted-foreground">{lang === "ar" ? "لم يتم رفع أي ملفات بعد." : "No files uploaded yet."}</p>
+      return (
+        <p className="text-muted-foreground">
+          {lang === "ar"
+            ? "لم يتم رفع أي ملفات بعد."
+            : "No files uploaded yet."}
+        </p>
+      )
     }
 
     return (
@@ -488,6 +499,14 @@ export default function AssignmentDetailPage({
 
   return (
     <div className="space-y-6">
+      {(currentUser?.role === "admin" ||
+        currentUser?.role === "super_admin") && (
+        <ExpertTaskAssignment
+          key={assignment.id}
+          task={assignment}
+          onSaved={updateAssignment}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -619,7 +638,9 @@ export default function AssignmentDetailPage({
         <TabsContent value="view">
           <Card>
             <CardHeader>
-              <CardTitle>{lang === "ar" ? "معاينة الأداة" : "Tool Preview"}</CardTitle>
+              <CardTitle>
+                {lang === "ar" ? "معاينة الأداة" : "Tool Preview"}
+              </CardTitle>
               <CardDescription>
                 {lang === "ar"
                   ? "كيف تظهر الأداة للحالة (باستخدام لقطة الإعدادات)"

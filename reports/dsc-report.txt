@@ -1,0 +1,2061 @@
+DSC PROJECT CHECK REPORT
+Generated: 2026-10-10T18:15:10.857361+00:00
+Project: D:\SysDir\MyDocument\ChatGPT\DSC\dsc
+Source files scanned: 313
+Findings: 156
+Severity counts: {'HIGH': 15, 'MEDIUM': 127, 'LOW': 14}
+
+Scope: heuristic source review plus local diagnostics when enabled. Findings require human review.
+This is not a complete security audit or proof that the application is safe.
+No browser, live database, messaging, or deployment tests are run. Dependency CVEs are not checked.
+Environment files, generated assets, dependencies and database files are excluded.
+Code is not automatically repaired. Existing unit tests execute project code.
+
+FINDINGS
+1. [HIGH] [security] SEC005
+Position: app/api/contact/route.ts:8
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+2. [MEDIUM] [security] SEC006
+Position: app/api/contact/route.ts:8
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+3. [HIGH] [security] SEC005
+Position: app/api/send-email/route.ts:5
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+4. [MEDIUM] [security] SEC006
+Position: app/api/send-email/route.ts:5
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+5. [MEDIUM] [data handling] DATA004
+Position: app/api/send-email/route.ts:5
+Issue: Request shape validation needs review
+Confidence: review required
+Details: Presence checks do not establish types, lengths, allowed recipients, or attachment limits. Validate the complete request schema before using data.
+
+6. [MEDIUM] [security] SEC007
+Position: app/api/send-email/route.ts:5
+Issue: Raw exception returned to caller
+Confidence: review required
+Details: Upstream exceptions can expose internal details. Return a generic error and record redacted diagnostics server-side.
+
+7. [HIGH] [security] SEC005
+Position: app/api/send-message/route.ts:5
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+8. [MEDIUM] [security] SEC006
+Position: app/api/send-message/route.ts:5
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+9. [MEDIUM] [data handling] DATA004
+Position: app/api/send-message/route.ts:5
+Issue: Request shape validation needs review
+Confidence: review required
+Details: Presence checks do not establish types, lengths, allowed recipients, or attachment limits. Validate the complete request schema before using data.
+
+10. [MEDIUM] [security] SEC007
+Position: app/api/send-message/route.ts:5
+Issue: Raw exception returned to caller
+Confidence: review required
+Details: Upstream exceptions can expose internal details. Return a generic error and record redacted diagnostics server-side.
+
+11. [HIGH] [security] SEC005
+Position: app/api/telegram-notify/route.ts:4
+Issue: Messaging route has no visible authentication check
+Confidence: review required
+Details: This handler invokes an external messaging service. Verify middleware and deployment controls; public contact endpoints still need abuse protection and fixed recipients.
+
+12. [MEDIUM] [security] SEC006
+Position: app/api/telegram-notify/route.ts:4
+Issue: No visible messaging abuse protection
+Confidence: review required
+Details: Check gateway controls and add enforced throttling or bot protection to prevent spam and service-cost abuse.
+
+13. [MEDIUM] [data handling] DATA004
+Position: app/api/telegram-notify/route.ts:4
+Issue: Request shape validation needs review
+Confidence: review required
+Details: Presence checks do not establish types, lengths, allowed recipients, or attachment limits. Validate the complete request schema before using data.
+
+14. [MEDIUM] [security] SEC007
+Position: app/api/telegram-notify/route.ts:4
+Issue: Raw exception returned to caller
+Confidence: review required
+Details: Upstream exceptions can expose internal details. Return a generic error and record redacted diagnostics server-side.
+
+15. [MEDIUM] [data handling] DATA002
+Position: app/blog/page.tsx:11
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+16. [MEDIUM] [data handling] DATA002
+Position: app/blog/page.tsx:14
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+17. [MEDIUM] [data handling] DATA002
+Position: app/blog/[slug]/page.tsx:27
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+18. [MEDIUM] [data handling] DATA001
+Position: app/cms/blog/[slug]/page.tsx:85
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+19. [MEDIUM] [data handling] DATA002
+Position: app/cms/blog/[slug]/page.tsx:85
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+20. [MEDIUM] [data handling] DATA002
+Position: app/cms/home-pages/page.tsx:44
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+21. [MEDIUM] [data handling] DATA002
+Position: app/cms/info/[portalId]/page.tsx:54
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+22. [MEDIUM] [data handling] DATA001
+Position: app/cms/info/[portalId]/page.tsx:55
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+23. [MEDIUM] [data handling] DATA002
+Position: app/dashboard/admin/allocations/page.tsx:178
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+24. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/allocations/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1023 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+25. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/assignments/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 670 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+26. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/cases/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1257 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+27. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/training/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1219 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+28. [LOW] [design] DESIGN001
+Position: app/dashboard/admin/users/[id]/page.tsx:275
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+29. [LOW] [design] DESIGN001
+Position: app/dashboard/admin/users/[id]/page.tsx:299
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+30. [LOW] [design] DESIGN001
+Position: app/dashboard/admin/users/[id]/page.tsx:341
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+31. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/admin/users/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 843 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+32. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/cases/[id]/tasks/[toolId]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+33. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/individual/cases/[id]/tasks/[toolId]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+34. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/institution/projects/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 689 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+35. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/institution/projects/[id]/tasks/[toolId]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+36. [MEDIUM] [design] DESIGN002
+Position: app/dashboard/parent/cases/[id]/tasks/[toolId]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 2084 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+37. [MEDIUM] [data handling] DATA002
+Position: app/portal/[id]/page.tsx:27
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+38. [MEDIUM] [data handling] DATA001
+Position: app/portal/[id]/page.tsx:28
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+39. [MEDIUM] [design] DESIGN002
+Position: app/programmes/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 729 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+40. [MEDIUM] [design] DESIGN002
+Position: app/programmes/training_programmes/[id]/page.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 763 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+41. [HIGH] [security] SEC001
+Position: components/cms/CmsContent.tsx:38
+Issue: HTML injection sink
+Confidence: review required
+Details: Trace the HTML to its source and verify robust sanitization before rendering. This sink alone does not prove XSS.
+
+42. [LOW] [design] DESIGN001
+Position: components/cms/RichTextEditor.tsx:63
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+43. [LOW] [design] DESIGN001
+Position: components/cms/RichTextEditor.tsx:112
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+44. [LOW] [design] DESIGN001
+Position: components/cms/RichTextEditor.tsx:208
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+45. [MEDIUM] [data handling] DATA003
+Position: components/cms/RichTextEditor.tsx:215
+Issue: Empty error handler
+Confidence: review required
+Details: A failure can disappear without feedback or recovery. Surface or deliberately document the error.
+
+46. [MEDIUM] [data handling] DATA003
+Position: components/cms/RichTextEditor.tsx:226
+Issue: Empty error handler
+Confidence: review required
+Details: A failure can disappear without feedback or recovery. Surface or deliberately document the error.
+
+47. [MEDIUM] [design] DESIGN002
+Position: components/dashboard/ExpertApproval.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 687 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+48. [MEDIUM] [data handling] DATA002
+Position: components/dashboard/ExpertTaskAssignment.tsx:38
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+49. [MEDIUM] [data handling] DATA002
+Position: components/dashboard/ExpertTaskAssignment.tsx:42
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+50. [MEDIUM] [design] DESIGN002
+Position: components/dashboard/UserManagement.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1012 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+51. [MEDIUM] [design] DESIGN002
+Position: components/expert/ExpertProfileEditor.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1048 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+52. [MEDIUM] [design] DESIGN002
+Position: components/register/ExpertApplicationForm.tsx:1
+Issue: Large module
+Confidence: review required
+Details: 1258 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+53. [MEDIUM] [data handling] DATA002
+Position: components/register/UserTypeSelector.tsx:30
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+54. [LOW] [design] DESIGN001
+Position: hooks/useAuth.ts:82
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+55. [MEDIUM] [data handling] DATA002
+Position: hooks/useLookups.ts:28
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+56. [MEDIUM] [data handling] DATA002
+Position: hooks/usePaymentSettings.ts:16
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+57. [MEDIUM] [data handling] DATA002
+Position: hooks/usePaymentSettings.ts:39
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+58. [MEDIUM] [data handling] DATA002
+Position: hooks/useUsers.ts:15
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+59. [MEDIUM] [data handling] DATA001
+Position: hooks/useUsers.ts:89
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+60. [MEDIUM] [data handling] DATA002
+Position: hooks/useUsers.ts:89
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+61. [MEDIUM] [data handling] DATA002
+Position: hooks/useUsers.ts:90
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+62. [MEDIUM] [data handling] DATA001
+Position: hooks/useUsers.ts:91
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+63. [MEDIUM] [data handling] DATA002
+Position: hooks/useUsers.ts:116
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+64. [MEDIUM] [data handling] DATA001
+Position: hooks/useUsers.ts:117
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+65. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:49
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+66. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:75
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+67. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:76
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+68. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:82
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+69. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:91
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+70. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:148
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+71. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:149
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+72. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:156
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+73. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:160
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+74. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:161
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+75. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:169
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+76. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:170
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+77. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:178
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+78. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:179
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+79. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:186
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+80. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:255
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+81. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:256
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+82. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:261
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+83. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:262
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+84. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:267
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+85. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:268
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+86. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:296
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+87. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:311
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+88. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:436
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+89. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:443
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+90. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:444
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+91. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:460
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+92. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:460
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+93. [LOW] [design] DESIGN001
+Position: lib/pb-collections.ts:631
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+94. [LOW] [design] DESIGN001
+Position: lib/pb-collections.ts:635
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+95. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:644
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+96. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:841
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+97. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:886
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+98. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:892
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+99. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:893
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+100. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:899
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+101. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:900
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+102. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:942
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+103. [MEDIUM] [data handling] DATA002
+Position: lib/pb-collections.ts:996
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+104. [MEDIUM] [data handling] DATA001
+Position: lib/pb-collections.ts:997
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+105. [MEDIUM] [design] DESIGN002
+Position: lib/pb-collections.ts:1
+Issue: Large module
+Confidence: review required
+Details: 1045 lines. Review separation of UI, validation, and persistence responsibilities; size is a review signal, not a defect by itself.
+
+106. [MEDIUM] [data handling] DATA002
+Position: lib/pb-lectures.ts:127
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+107. [MEDIUM] [data handling] DATA002
+Position: lib/pb-lectures.ts:135
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+108. [MEDIUM] [data handling] DATA002
+Position: lib/pb-lectures.ts:188
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+109. [MEDIUM] [data handling] DATA002
+Position: lib/pb-lectures.ts:197
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+110. [MEDIUM] [data handling] DATA001
+Position: lib/pb-lectures.ts:198
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+111. [MEDIUM] [data handling] DATA002
+Position: lib/pb-lectures.ts:207
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+112. [MEDIUM] [data handling] DATA001
+Position: lib/pb-lectures.ts:208
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+113. [MEDIUM] [data handling] DATA002
+Position: lib/pb-lectures.ts:244
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+114. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:227
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+115. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:234
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+116. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:248
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+117. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:302
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+118. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:310
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+119. [MEDIUM] [data handling] DATA001
+Position: lib/pb-training.ts:311
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+120. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:318
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+121. [MEDIUM] [data handling] DATA001
+Position: lib/pb-training.ts:319
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+122. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:329
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+123. [MEDIUM] [data handling] DATA001
+Position: lib/pb-training.ts:330
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+124. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:367
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+125. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:374
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+126. [MEDIUM] [data handling] DATA001
+Position: lib/pb-training.ts:375
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+127. [MEDIUM] [data handling] DATA002
+Position: lib/pb-training.ts:382
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+128. [MEDIUM] [data handling] DATA001
+Position: lib/pb-training.ts:383
+Issue: Interpolated database filter
+Confidence: review required
+Details: An interpolated filter may change query meaning if a value contains quotes or operators. Check value provenance and use PocketBase filter binding.
+
+129. [LOW] [design] DESIGN001
+Position: lib/pb.ts:19
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+130. [LOW] [design] DESIGN001
+Position: lib/pb.ts:282
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+131. [MEDIUM] [data handling] DATA002
+Position: lib/portal-data.ts:40
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+132. [MEDIUM] [data handling] DATA002
+Position: lib/team-experts.ts:47
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+133. [HIGH] [security] SEC004
+Position: local-backend/1780000000_local_bootstrap.js:20
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+134. [HIGH] [security] SEC004
+Position: local-backend/1780000000_local_bootstrap.js:21
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+135. [HIGH] [security] SEC004
+Position: local-backend/1780000000_local_bootstrap.js:22
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+136. [HIGH] [security] SEC004
+Position: local-backend/1780000000_local_bootstrap.js:23
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+137. [HIGH] [security] SEC004
+Position: local-backend/1780000000_local_bootstrap.js:25
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+138. [HIGH] [security] SEC004
+Position: local-backend/1791600000_local_events.js:10
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+139. [MEDIUM] [data handling] DATA002
+Position: local-backend/seed-demo.mjs:5
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+140. [MEDIUM] [data handling] DATA002
+Position: local-backend/seed-demo.mjs:10
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+141. [MEDIUM] [data handling] DATA003
+Position: pb_hooks/lib/project-validation.js:15
+Issue: Empty error handler
+Confidence: review required
+Details: A failure can disappear without feedback or recovery. Surface or deliberately document the error.
+
+142. [HIGH] [security] SEC004
+Position: pb_migrations/1791500000_expert_management.js:9
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+143. [HIGH] [security] SEC004
+Position: pb_migrations/1791500000_expert_management.js:10
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+144. [HIGH] [security] SEC004
+Position: pb_migrations/1791800000_expert_cases_access.js:11
+Issue: Public PocketBase rule in migration
+Confidence: review required
+Details: An empty rule grants public access. Check collection sensitivity and later migrations; historical rules may have been replaced.
+
+145. [MEDIUM] [data handling] DATA002
+Position: tests/expert-biographies.mjs:5
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+146. [LOW] [design] DESIGN001
+Position: tests/expert-management.test.ts:14
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+147. [LOW] [design] DESIGN001
+Position: tests/expert-management.test.ts:15
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+148. [LOW] [design] DESIGN001
+Position: tests/expert-management.test.ts:28
+Issue: Type safety bypass
+Confidence: review required
+Details: Review this boundary for runtime validation; an any type can hide incompatible data shapes.
+
+149. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:11
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+150. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:32
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+151. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:33
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+152. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:34
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+153. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:35
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+154. [MEDIUM] [data handling] DATA002
+Position: tests/local-workflows.mjs:40
+Issue: Unbounded collection retrieval
+Confidence: review required
+Details: Review expected record counts and access rules. Use pagination or an explicit bounded query for growing datasets.
+
+155. [MEDIUM] [data handling] DATA003
+Position: tests/local-workflows.mjs:42
+Issue: Empty error handler
+Confidence: review required
+Details: A failure can disappear without feedback or recovery. Surface or deliberately document the error.
+
+156. [HIGH] [security] SEC002
+Position: tests/portal-management.test.cjs:11
+Issue: Dynamic code execution
+Confidence: review required
+Details: Verify no untrusted content reaches this execution point; prefer a restricted parser.
+
+DIAGNOSTICS (compiler/linter output includes original file positions)
+TypeScript: PASS (exit 0)
+
+
+ESLint: FAIL (exit 1)
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\(auth)\login\page.tsx
+  13:3  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  15:3  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\api\send-message\route.ts
+  1:10  warning  'Resend' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\blog\[slug]\page.tsx
+   23:39  warning  'TabsContent' is defined but never used            @typescript-eslint/no-unused-vars
+   60:10  warning  'deleting' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  298:9   warning  'handleDelete' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\blog\categories\page.tsx
+  50:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\blog\categories\page.tsx:50:5
+  48 |
+  49 |   useEffect(() => {
+> 50 |     load()
+     |     ^^^^ Avoid calling setState() directly within an effect
+  51 |   }, [load])
+  52 |
+  53 |   const handleAdd = async () => {  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\home-pages\page.tsx
+  38:5  error  Error: Cannot access variable before it is declared
+
+`loadPages` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\home-pages\page.tsx:38:5
+  36 |
+  37 |   useEffect(() => {
+> 38 |     loadPages()
+     |     ^^^^^^^^^ `loadPages` accessed before it is declared
+  39 |   }, [])
+  40 |
+  41 |   const loadPages = () => {
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\home-pages\page.tsx:41:3
+  39 |   }, [])
+  40 |
+> 41 |   const loadPages = () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 42 |     setLoading(true)
+     | ^^^^^^^^^^^^^^^^^^^^
+> 43 |     pb.collection("home_pages")
+     …
+     | ^^^^^^^^^^^^^^^^^^^^
+> 50 |       })
+     | ^^^^^^^^^^^^^^^^^^^^
+> 51 |   }
+     | ^^^^ `loadPages` is declared here
+  52 |
+  53 |   const handleCreate = async () => {
+  54 |     if (!newSlug.trim() || !newTitle.trim()) return  react-hooks/immutability
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\info\[portalId]\[slug]\page.tsx
+   94:10  warning  'deleting' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  146:5   error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `setEnTitle`, but the source dependencies were [page, pageSlug, enTitle, arTitle, enContent, arContent, isPublished, activeLang, portalId, router, lang]. Inferred different dependency than source.
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\info\[portalId]\[slug]\page.tsx:146:5
+  144 |
+  145 |   const handleSave = useCallback(
+> 146 |     async (overrideContent?: string) => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 147 |       if (!page) return
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 148 |       setSaving(true)
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 183 |       }
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 184 |     },
+      | ^^^^^^ Could not preserve existing manual memoization
+  185 |     [
+  186 |       page,
+  187 |       pageSlug,                                                                                                                   react-hooks/preserve-manual-memoization
+  146:5   error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `setArTitle`, but the source dependencies were [page, pageSlug, enTitle, arTitle, enContent, arContent, isPublished, activeLang, portalId, router, lang]. Inferred different dependency than source.
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\info\[portalId]\[slug]\page.tsx:146:5
+  144 |
+  145 |   const handleSave = useCallback(
+> 146 |     async (overrideContent?: string) => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 147 |       if (!page) return
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 148 |       setSaving(true)
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 183 |       }
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 184 |     },
+      | ^^^^^^ Could not preserve existing manual memoization
+  185 |     [
+  186 |       page,
+  187 |       pageSlug,                                                                                                                   react-hooks/preserve-manual-memoization
+  223:39  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `setArTitle`, but the source dependencies were [enTitle, enContent]. Inferred different dependency than source.
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\info\[portalId]\[slug]\page.tsx:223:39
+  221 |   )
+  222 |
+> 223 |   const copyFromEnglish = useCallback(() => {
+      |                                       ^^^^^^^
+> 224 |     setArTitle(enTitle)
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 225 |     setArContent(enContent)
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 226 |     setResetKey(t => t + 1)
+      | ^^^^^^^^^^^^^^^^^^^^^^^
+> 227 |   }, [enTitle, enContent])
+      | ^^^^ Could not preserve existing manual memoization
+  228 |
+  229 |   const handleDiscard = useCallback(async () => {
+  230 |     const data = await infoPagesCollection.getBySlug(slug)                                                                                                              react-hooks/preserve-manual-memoization
+  229:37  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `setEnTitle`, but the source dependencies were [slug]. Inferred different dependency than source.
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\info\[portalId]\[slug]\page.tsx:229:37
+  227 |   }, [enTitle, enContent])
+  228 |
+> 229 |   const handleDiscard = useCallback(async () => {
+      |                                     ^^^^^^^^^^^^^
+> 230 |     const data = await infoPagesCollection.getBySlug(slug)
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 231 |     if (!data) return
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 242 |     setResetKey(t => t + 1)
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 243 |   }, [slug])
+      | ^^^^ Could not preserve existing manual memoization
+  244 |
+  245 |   const togglePublish = useCallback(async () => {
+  246 |     if (!page) return  react-hooks/preserve-manual-memoization
+  229:37  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `setArTitle`, but the source dependencies were [slug]. Inferred different dependency than source.
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\info\[portalId]\[slug]\page.tsx:229:37
+  227 |   }, [enTitle, enContent])
+  228 |
+> 229 |   const handleDiscard = useCallback(async () => {
+      |                                     ^^^^^^^^^^^^^
+> 230 |     const data = await infoPagesCollection.getBySlug(slug)
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 231 |     if (!data) return
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 242 |     setResetKey(t => t + 1)
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 243 |   }, [slug])
+      | ^^^^ Could not preserve existing manual memoization
+  244 |
+  245 |   const togglePublish = useCallback(async () => {
+  246 |     if (!page) return  react-hooks/preserve-manual-memoization
+  319:9   warning  'handleDelete' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\info\[portalId]\page.tsx
+  51:10  warning  'savingOrder' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\cms\portals\page.tsx
+  472:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  516:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\assignments\[id]\page.tsx
+   75:5  warning  'toolTypes' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  182:9  warning  'renderSurveyResponse' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  228:9  warning  'renderMultipleChoiceResponse' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  284:9  warning  'renderMediaResponse' is assigned a value but never used           @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\assignments\page.tsx
+  21:10  warning  'PageLoader' is defined but never used          @typescript-eslint/no-unused-vars
+  77:5   warning  'toolTypes' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\cases\[id]\page.tsx
+   57:3   warning  'Calendar' is defined but never used                    @typescript-eslint/no-unused-vars
+   58:3   warning  'Mail' is defined but never used                        @typescript-eslint/no-unused-vars
+   59:3   warning  'Phone' is defined but never used                       @typescript-eslint/no-unused-vars
+   63:3   warning  'Pencil' is defined but never used                      @typescript-eslint/no-unused-vars
+   79:15  warning  'Tool' is defined but never used                        @typescript-eslint/no-unused-vars
+   79:21  warning  'ToolType' is defined but never used                    @typescript-eslint/no-unused-vars
+  125:10  warning  'assignTab' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  125:21  warning  'setAssignTab' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  128:10  warning  'toolTypeFilter' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  128:26  warning  'setToolTypeFilter' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\cases\page.tsx
+  12:10  warning  'PageLoader' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  91:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\cases\page.tsx:91:5
+  89 |       else if (a.status === "completed") counts[a.case].completed++
+  90 |     })
+> 91 |     setAssignmentCounts(counts)
+     |     ^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  92 |   }, [assignments])
+  93 |
+  94 |   const isLoading = isProfilesLoading || isAssignmentsLoading  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\settings\lookups\page.tsx
+  9:41  warning  'CardTitle' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\settings\page.tsx
+   8:37  warning  'Plus' is defined but never used         @typescript-eslint/no-unused-vars
+  11:3   warning  'CardContent' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\settings\payments\page.tsx
+  45:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\settings\payments\page.tsx:45:5
+  43 |
+  44 |   useEffect(() => {
+> 45 |     setFormData(bankDetails)
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  46 |   }, [bankDetails])
+  47 |
+  48 |   if (isAuthLoading || isSettingsLoading) {  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\attachment-request\new\page.tsx
+    4:21  warning  'useSearchParams' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   14:10  warning  'Textarea' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   50:10  warning  'isInitializing' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   83:6   warning  React Hook useEffect has a missing dependency: 'lang'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
+   92:11  error    Error: Cannot access variable before it is declared
+
+`handleCaseSelect` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\attachment-request\new\page.tsx:92:11
+  90 |         const caseIdFromUrl = params?.caseId
+  91 |         if (caseIdFromUrl) {
+> 92 |           handleCaseSelect(caseIdFromUrl)
+     |           ^^^^^^^^^^^^^^^^ `handleCaseSelect` accessed before it is declared
+  93 |         }
+  94 |       } catch (e) {
+  95 |         console.error("Failed to read searchParams:", e)
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\attachment-request\new\page.tsx:104:3
+  102 |   }, [])
+  103 |
+> 104 |   const handleCaseSelect = (caseId: string) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 105 |     setSelectedCaseId(caseId)
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 106 |     if (caseId) {
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 123 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 124 |   }
+      | ^^^^ `handleCaseSelect` is declared here
+  125 |
+  126 |   const toggleFileType = (type: AttachmentFileType) => {
+  127 |     setSelectedTypes((prev) => {  react-hooks/immutability
+  102:6   warning  React Hook useEffect has missing dependencies: 'handleCaseSelect' and 'searchParams'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\multiple-choice\[id]\page.tsx
+  40:7  warning  'statusLabels' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\multiple-choice\edit\[id]\page.tsx
+  3:10  warning  'use' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\multiple-choice\new\page.tsx
+   91:11  warning  'assignTool' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   93:11  warning  'toolTypes' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  123:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\multiple-choice\new\page.tsx:123:7
+  121 |   useEffect(() => {
+  122 |     if (isEditMode && editId && !isToolsLoading) {
+> 123 |       setIsLoading(true)
+      |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  124 |       const tool = getToolById(editId)
+  125 |       if (tool && tool.config) {
+  126 |         const config = tool.config as MultipleChoiceConfig  react-hooks/set-state-in-effect
+  135:6   warning  React Hook useEffect has a missing dependency: 'getToolById'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  345:11  warning  'showCorrect' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  434:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @next/next/no-img-element
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\new\page.tsx
+   9:3  warning  'CardContent' is defined but never used      @typescript-eslint/no-unused-vars
+  10:3  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\one-to-one-meeting\new\page.tsx
+  70:6  warning  React Hook useEffect has a missing dependency: 'lang'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\plan\new\page.tsx
+    4:21  warning  'useSearchParams' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   20:37  warning  'GripVertical' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  103:6   warning  React Hook useEffect has a missing dependency: 'lang'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+  108:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\plan\new\page.tsx:108:7
+  106 |   useEffect(() => {
+  107 |     if (currentUser?.name) {
+> 108 |       setFormData((prev) => ({
+      |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  109 |         ...prev,
+  110 |         expertName: currentUser.name,
+  111 |       }))  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\report\new\page.tsx
+   4:21  warning  'useSearchParams' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  80:6   warning  React Hook useEffect has a missing dependency: 'lang'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+  85:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\report\new\page.tsx:85:7
+  83 |   useEffect(() => {
+  84 |     if (currentUser?.name) {
+> 85 |       setExpertName(currentUser.name)
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  86 |     }
+  87 |   }, [currentUser])
+  88 |  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\survey\[id]\page.tsx
+  40:7  warning  'statusLabels' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\survey\edit\[id]\page.tsx
+  3:10  warning  'use' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\survey\new\page.tsx
+   76:11  warning  'toolTypes' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  125:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\tools\survey\new\page.tsx:125:7
+  123 |     if (tool && tool.config) {
+  124 |       const config = tool.config as SurveyConfig
+> 125 |       setFormData({
+      |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  126 |         nameEn: tool.name.en,
+  127 |         nameAr: tool.name.ar,
+  128 |         answerType: config.answerType || "single_choice",  react-hooks/set-state-in-effect
+  278:51  warning  'index' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\training\[id]\page.tsx
+  176:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\training\[id]\page.tsx:176:5
+  174 |
+  175 |   useEffect(() => {
+> 176 |     fetchEnrollments()
+      |     ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  177 |   }, [id])
+  178 |
+  179 |   const eligibleRegistrations = enrollments.filter((e) => {  react-hooks/set-state-in-effect
+  177:6  warning  React Hook useEffect has a missing dependency: 'fetchEnrollments'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\admin\users\[id]\page.tsx
+  275:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  299:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  341:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\cases\[id]\page.tsx
+  27:3  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+  28:3  warning  'Mail' is defined but never used      @typescript-eslint/no-unused-vars
+  29:3  warning  'Phone' is defined but never used     @typescript-eslint/no-unused-vars
+  35:3  warning  'Send' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\cases\[id]\tasks\[toolId]\page.tsx
+     3:36  warning  'useMemo' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    25:3   warning  'CheckCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+    51:10  warning  'cn' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+    56:7   warning  'RATING_LABELS' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   140:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\cases\[id]\tasks\[toolId]\page.tsx:140:7
+  138 |   useEffect(() => {
+  139 |     if (meetingConfig) {
+> 140 |       setLocalNotes(meetingConfig.notes || "")
+      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  141 |       setLocalNotesVisible(meetingConfig.notesVisibleToUser || false)
+  142 |     }
+  143 |   }, [meetingConfig])                                        react-hooks/set-state-in-effect
+   168:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\cases\[id]\tasks\[toolId]\page.tsx:168:7
+  166 |     if (hasInitializedAnswers.current) return
+  167 |     if (existingResponses && Object.keys(existingResponses).length > 0) {
+> 168 |       setAnswers(existingResponses)
+      |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  169 |       hasInitializedAnswers.current = true
+  170 |     }
+  171 |   }, [existingResponses])  react-hooks/set-state-in-effect
+   198:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\cases\[id]\tasks\[toolId]\page.tsx:198:7
+  196 |       }
+  197 |
+> 198 |       setExistingFiles(filesByKey)
+      |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  199 |       hasInitializedFiles.current = true
+  200 |     }
+  201 |   }, [assignment?.media, assignment?.responses])                                                                                        react-hooks/set-state-in-effect
+   423:9   warning  'handleStart' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   517:14  warning  Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        jsx-a11y/alt-text
+   532:9   warning  'renderQuestion' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   619:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @next/next/no-img-element
+   890:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @next/next/no-img-element
+  1779:31  warning  'hasError' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\cases\new\page.tsx
+  94:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\cases\new\page.tsx:94:7
+  92 |   useEffect(() => {
+  93 |     if (!isTrainingSelected) {
+> 94 |       setSelectedProgramId("")
+     |       ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  95 |       setTrainingPrograms([])
+  96 |       return
+  97 |     }  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\individual\cases\[id]\page.tsx
+  27:3  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+  28:3  warning  'Mail' is defined but never used      @typescript-eslint/no-unused-vars
+  29:3  warning  'Phone' is defined but never used     @typescript-eslint/no-unused-vars
+  35:3  warning  'Send' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\individual\cases\[id]\tasks\[toolId]\page.tsx
+     3:36  warning  'useMemo' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    25:3   warning  'CheckCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    51:10  warning  'cn' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    56:7   warning  'RATING_LABELS' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   140:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\individual\cases\[id]\tasks\[toolId]\page.tsx:140:7
+  138 |   useEffect(() => {
+  139 |     if (meetingConfig) {
+> 140 |       setLocalNotes(meetingConfig.notes || "")
+      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  141 |       setLocalNotesVisible(meetingConfig.notesVisibleToUser || false)
+  142 |     }
+  143 |   }, [meetingConfig])                                        react-hooks/set-state-in-effect
+   168:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\individual\cases\[id]\tasks\[toolId]\page.tsx:168:7
+  166 |     if (hasInitializedAnswers.current) return
+  167 |     if (existingResponses && Object.keys(existingResponses).length > 0) {
+> 168 |       setAnswers(existingResponses)
+      |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  169 |       hasInitializedAnswers.current = true
+  170 |     }
+  171 |   }, [existingResponses])  react-hooks/set-state-in-effect
+   198:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\individual\cases\[id]\tasks\[toolId]\page.tsx:198:7
+  196 |       }
+  197 |
+> 198 |       setExistingFiles(filesByKey)
+      |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  199 |       hasInitializedFiles.current = true
+  200 |     }
+  201 |   }, [assignment?.media, assignment?.responses])                                                                                        react-hooks/set-state-in-effect
+   423:9   warning  'handleStart' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   517:14  warning  Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   jsx-a11y/alt-text
+   532:9   warning  'renderQuestion' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   619:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @next/next/no-img-element
+   890:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @next/next/no-img-element
+  1779:31  warning  'hasError' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\individual\cases\new\page.tsx
+  95:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\individual\cases\new\page.tsx:95:7
+  93 |   useEffect(() => {
+  94 |     if (!isTrainingSelected) {
+> 95 |       setSelectedProgramId("")
+     |       ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  96 |       setTrainingPrograms([])
+  97 |       return
+  98 |     }  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\individual\cases\page.tsx
+   3:10  warning  'useEffect' is defined but never used             @typescript-eslint/no-unused-vars
+  16:9   warning  'router' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  17:11  warning  'currentUser' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\institution\projects\[id]\tasks\[toolId]\page.tsx
+     3:36  warning  'useMemo' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+    25:3   warning  'CheckCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    51:10  warning  'cn' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    56:7   warning  'RATING_LABELS' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   140:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\institution\projects\[id]\tasks\[toolId]\page.tsx:140:7
+  138 |   useEffect(() => {
+  139 |     if (meetingConfig) {
+> 140 |       setLocalNotes(meetingConfig.notes || "")
+      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  141 |       setLocalNotesVisible(meetingConfig.notesVisibleToUser || false)
+  142 |     }
+  143 |   }, [meetingConfig])                                        react-hooks/set-state-in-effect
+   168:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\institution\projects\[id]\tasks\[toolId]\page.tsx:168:7
+  166 |     if (hasInitializedAnswers.current) return
+  167 |     if (existingResponses && Object.keys(existingResponses).length > 0) {
+> 168 |       setAnswers(existingResponses)
+      |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  169 |       hasInitializedAnswers.current = true
+  170 |     }
+  171 |   }, [existingResponses])  react-hooks/set-state-in-effect
+   198:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\institution\projects\[id]\tasks\[toolId]\page.tsx:198:7
+  196 |       }
+  197 |
+> 198 |       setExistingFiles(filesByKey)
+      |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  199 |       hasInitializedFiles.current = true
+  200 |     }
+  201 |   }, [assignment?.media, assignment?.responses])                                                                                        react-hooks/set-state-in-effect
+   423:9   warning  'handleStart' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   517:14  warning  Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       jsx-a11y/alt-text
+   532:9   warning  'renderQuestion' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   619:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+   890:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+  1779:31  warning  'hasError' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\parent\cases\[id]\page.tsx
+  27:3  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+  28:3  warning  'Mail' is defined but never used      @typescript-eslint/no-unused-vars
+  29:3  warning  'Phone' is defined but never used     @typescript-eslint/no-unused-vars
+  35:3  warning  'Send' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\parent\cases\[id]\tasks\[toolId]\page.tsx
+     3:36  warning  'useMemo' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    25:3   warning  'CheckCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+    51:10  warning  'cn' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+    56:7   warning  'RATING_LABELS' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   140:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\parent\cases\[id]\tasks\[toolId]\page.tsx:140:7
+  138 |   useEffect(() => {
+  139 |     if (meetingConfig) {
+> 140 |       setLocalNotes(meetingConfig.notes || "")
+      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  141 |       setLocalNotesVisible(meetingConfig.notesVisibleToUser || false)
+  142 |     }
+  143 |   }, [meetingConfig])                                        react-hooks/set-state-in-effect
+   168:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\parent\cases\[id]\tasks\[toolId]\page.tsx:168:7
+  166 |     if (hasInitializedAnswers.current) return
+  167 |     if (existingResponses && Object.keys(existingResponses).length > 0) {
+> 168 |       setAnswers(existingResponses)
+      |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  169 |       hasInitializedAnswers.current = true
+  170 |     }
+  171 |   }, [existingResponses])  react-hooks/set-state-in-effect
+   198:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\parent\cases\[id]\tasks\[toolId]\page.tsx:198:7
+  196 |       }
+  197 |
+> 198 |       setExistingFiles(filesByKey)
+      |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  199 |       hasInitializedFiles.current = true
+  200 |     }
+  201 |   }, [assignment?.media, assignment?.responses])                                                                                        react-hooks/set-state-in-effect
+   423:9   warning  'handleStart' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   517:14  warning  Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               jsx-a11y/alt-text
+   532:9   warning  'renderQuestion' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   619:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @next/next/no-img-element
+   890:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @next/next/no-img-element
+  1779:31  warning  'hasError' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\parent\cases\new\page.tsx
+  95:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\parent\cases\new\page.tsx:95:7
+  93 |   useEffect(() => {
+  94 |     if (!isTrainingSelected) {
+> 95 |       setSelectedProgramId("")
+     |       ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  96 |       setTrainingPrograms([])
+  97 |       return
+  98 |     }  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\dashboard\parent\cases\page.tsx
+   3:10  warning  'useEffect' is defined but never used             @typescript-eslint/no-unused-vars
+  16:9   warning  'router' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  17:11  warning  'currentUser' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\programmes\training_programmes\[id]\page.tsx
+  118:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\app\programmes\training_programmes\[id]\page.tsx:118:7
+  116 |   useEffect(() => {
+  117 |     if (!currentUser) {
+> 118 |       setIsEnrolleeChecking(false)
+      |       ^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  119 |       return
+  120 |     }
+  121 |     const checkExisting = async () => {  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\case-search-combobox.tsx
+  5:33  warning  'Search' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\cms\RichTextEditor.tsx
+   45:28  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+   63:19  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+  112:47  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+  174:6   warning  React Hook useEffect has missing dependencies: 'direction' and 'initialContent'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  208:57  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\dashboard\ProtectedRoute.tsx
+  12:28  warning  'currentUser' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\landing\PortalDiscovery.tsx
+  75:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\landing\ServiceJourney.tsx
+   3:8  warning  'Image' is defined but never used        @typescript-eslint/no-unused-vars
+  10:3  warning  'UserCheck' is defined but never used    @typescript-eslint/no-unused-vars
+  21:3  warning  'Briefcase' is defined but never used    @typescript-eslint/no-unused-vars
+  24:3  warning  'Building2' is defined but never used    @typescript-eslint/no-unused-vars
+  25:3  warning  'Stethoscope' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\lectures\LectureForm.tsx
+  338:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\navigation-progress.tsx
+  14:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\navigation-progress.tsx:14:7
+  12 |   useEffect(() => {
+  13 |     if (isLoading) {
+> 14 |       setVisible(true)
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  15 |       setProgress(0)
+  16 |       // Animate to 70% quickly
+  17 |       const t1 = setTimeout(() => setProgress(70), 100)  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\smart-link.tsx
+  29:9  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\team\FounderSection.tsx
+   3:8   warning  'Image' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  35:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\tool-renderers\MediaPreview.tsx
+   9:10  warning  'Button' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  20:10  warning  'playingId' is assigned a value but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  20:21  warning  'setPlayingId' is assigned a value but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  34:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\tool-renderers\MultipleChoicePreview.tsx
+  29:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\tool-renderers\MultipleChoicePreview.tsx:29:7
+  27 |   useEffect(() => {
+  28 |     if (readOnly) {
+> 29 |       setAnswers(responses)
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |     }
+  31 |   }, [responses, readOnly])
+  32 |  react-hooks/set-state-in-effect
+  48:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @next/next/no-img-element
+  78:11  warning  'correctOptions' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\tool-renderers\ReportPreview.tsx
+  7:10  warning  'Input' is defined but never used  @typescript-eslint/no-unused-vars
+  8:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\tool-renderers\SurveyPreview.tsx
+    5:29  warning  'SurveyQuestion' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    5:45  warning  'SurveyOption' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   11:10  warning  'cn' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   26:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\tool-renderers\SurveyPreview.tsx:26:7
+  24 |   useEffect(() => {
+  25 |     if (readOnly) {
+> 26 |       setAnswers(responses)
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |     }
+  28 |   }, [responses, readOnly])
+  29 |  react-hooks/set-state-in-effect
+  140:29  warning  'isSelected' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\ui\command.tsx
+  24:11  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\ui\drag-list.tsx
+  3:10  warning  'useState' is defined but never used      @typescript-eslint/no-unused-vars
+  4:10  warning  'GripVertical' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\components\ui\media-upload.tsx
+    4:10  warning  'Upload' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   66:10  warning  'isLoading' is assigned a value but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   66:21  warning  'setIsLoading' is assigned a value but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  117:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useAuth.ts
+  43:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useAuth.ts:43:5
+  41 |
+  42 |   useEffect(() => {
+> 43 |     refreshAuth()
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |
+  45 |     const unsubscribe = pb.authStore.onChange(() => {
+  46 |       refreshAuth()  react-hooks/set-state-in-effect
+  82:21  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useLectures.ts
+  48:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useLectures.ts:48:5
+  46 |
+  47 |   useEffect(() => {
+> 48 |     loadData()
+     |     ^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |   }, [loadData])
+  50 |
+  51 |   // Lecture CRUD operations  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\usePaymentSettings.ts
+  34:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\usePaymentSettings.ts:34:5
+  32 |
+  33 |   useEffect(() => {
+> 34 |     fetchSettings()
+     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  35 |   }, [fetchSettings])
+  36 |
+  37 |   const saveBankDetails = async (details: PaymentBankDetails) => {  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useRolesManagement.ts
+  29:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useRolesManagement.ts:29:5
+  27 |
+  28 |   useEffect(() => {
+> 29 |     fetchRoles()
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |   }, [fetchRoles])
+  31 |
+  32 |   const updateRoleToolTypes = useCallback(  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useTools.ts
+  26:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useTools.ts:26:5
+  24 |
+  25 |   useEffect(() => {
+> 26 |     fetchTools()
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |   }, [fetchTools])
+  28 |
+  29 |   const addTool = async (data: Partial<Tool>) => {  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useTraining.ts
+  52:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useTraining.ts:52:5
+  50 |
+  51 |   useEffect(() => {
+> 52 |     loadData()
+     |     ^^^^^^^^ Avoid calling setState() directly within an effect
+  53 |   }, [loadData])
+  54 |
+  55 |   // Program CRUD  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useUserProfileRecord.ts
+  113:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useUserProfileRecord.ts:113:5
+  111 |
+  112 |   useEffect(() => {
+> 113 |     load()
+      |     ^^^^ Avoid calling setState() directly within an effect
+  114 |   }, [load])
+  115 |
+  116 |   useEffect(() => {  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useUsers.ts
+  28:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\hooks\useUsers.ts:28:5
+  26 |
+  27 |   useEffect(() => {
+> 28 |     fetchUsers()
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |   }, [fetchUsers])
+  30 |
+  31 |   const addUser = async (data: {  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\lib\i18n.ts
+  11:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\lib\lang-context.tsx
+  44:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\lib\lang-context.tsx:44:9
+  42 |       const stored = getCookie(LANG_COOKIE);
+  43 |       if (stored === "ar" || stored === "en") {
+> 44 |         setLang(stored);
+     |         ^^^^^^^ Avoid calling setState() directly within an effect
+  45 |       }
+  46 |     }
+  47 |   }, [initialLang]);  react-hooks/set-state-in-effect
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\lib\pb-collections.ts
+    4:21  warning  'BilingualString' is defined but never used  @typescript-eslint/no-unused-vars
+  631:42  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  635:35  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\lib\pb.ts
+   19:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  282:10  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\local-backend\1791600000_local_events.js
+  9:8  warning  'lectures' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\pb_hooks\case-assignment.pb.js
+  1:28  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:28  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\pb_hooks\project-validation.pb.js
+   3:5  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  14:5  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\tests\contact-validation.test.cjs
+  1:16  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\tests\expert-management.test.ts
+  14:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\tests\portal-journey.test.cjs
+  1:16  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\tests\portal-management.test.cjs
+  1:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:8   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:8   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\SysDir\MyDocument\ChatGPT\DSC\dsc\tests\project-validation.test.cjs
+  1:16  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 227 problems (80 errors, 147 warnings)
+
+Unit test contact-validation.test.cjs: PASS (exit 0)
+Contact bounds, localization, phone/email formats and HTML escaping passed.
+
+Unit test portal-journey.test.cjs: PASS (exit 0)
+PASS: portal-specific guest registration and every signed-in role routes to its own cases/projects across all portals.
+
+Unit test portal-management.test.cjs: PASS (exit 0)
+✔ portal record preserves existing service and philosophy configuration while editable fields drive display (1.0189ms)
+✔ new portals work without a hardcoded default and their picture replaces banner (0.4882ms)
+✔ configured portal registration types apply to guests while signed-in roles go to their own cases (0.1053ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7.0978
+
+Unit test project-validation.test.cjs: PASS (exit 0)
+Project validation and metadata checks passed.
+
+Unit test expert-management.test.ts: PASS (exit 0)
+Expert ordering, IBAN checksum and private registration hook checks passed
+
+SCAN ERRORS

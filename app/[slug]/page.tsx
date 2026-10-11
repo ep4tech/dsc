@@ -26,7 +26,7 @@ export default async function SlugPage({ params }: SlugPageProps) {
   try {
     const record = await pb
       .collection("home_pages")
-      .getFirstListItem(`slug = "${slug}" && is_published = true`)
+      .getFirstListItem(pb.filter("slug = {:value0} && is_published = true", { value0: slug }))
     page = record as unknown as HomePage
   } catch {
     // Page not found or not published

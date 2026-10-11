@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useLang } from "@/lib/lang-context"
+import { projectCaseData, validateProject } from "@/lib/project-validation"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/pb"
 
@@ -26,6 +27,7 @@ export default function NewProjectPage() {
   const { lang } = useLang()
   const { addProfile } = useProfiles()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [name, setName] = useState("")
   const [startDate, setStartDate] = useState("")
@@ -35,31 +37,41 @@ export default function NewProjectPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentUser) return
+    if (
+      !currentUser ||
+      !["organization", "admin", "super_admin"].includes(currentUser.role)
+    ) {
+      setError(
+        lang === "ar"
+          ? "لا تملك صلاحية إنشاء مشروع."
+          : "You do not have permission to create a project."
+      )
+      return
+    }
+    const draft = { name, projectType, description, startDate, endDate }
+    const validation = validateProject(draft, lang)
+    setError(validation)
+    if (validation) return
 
     setIsSubmitting(true)
 
     try {
       const profileId = await addProfile({
         user: currentUser.id,
-        name: name.trim(),
-        date_of_birth: startDate,
-        grade: projectType.trim(),
-        notes: description.trim(),
+        ...projectCaseData(draft),
         status: "pending",
-        case_details: {
-          end_date: endDate || undefined,
-        },
       })
 
       toast.success(
-        lang === "ar" ? "تم إنشاء المشروع بنجاح" : "Project created successfully"
+        lang === "ar"
+          ? "تم إنشاء المشروع بنجاح"
+          : "Project created successfully"
       )
 
       router.push(`/dashboard/institution/projects/${profileId}`)
     } catch (error) {
       console.error("Failed to create project:", error)
-      toast.error(getErrorMessage(error, lang))
+      setError(getErrorMessage(error, lang))
     } finally {
       setIsSubmitting(false)
     }
@@ -72,11 +84,21 @@ export default function NewProjectPage() {
           {lang === "ar" ? "إنشاء مشروع جديد" : "Create New Project"}
         </h1>
         <p className="text-muted-foreground">
-          {lang === "ar" ? "املأ تفاصيل المشروع" : "Fill in the project details"}
+          {lang === "ar"
+            ? "املأ تفاصيل المشروع"
+            : "Fill in the project details"}
         </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
+        {error && (
+          <p
+            role="alert"
+            className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+          >
+            {error}
+          </p>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>
@@ -92,10 +114,12 @@ export default function NewProjectPage() {
             <div className="space-y-2">
               <Label htmlFor="name">
                 {lang === "ar" ? "اسم المشروع" : "Project Name"}
-                <span className="text-red-500 ms-1">*</span>
+                <span className="ms-1 text-red-500">*</span>
               </Label>
               <Input
                 id="name"
+                minLength={3}
+                maxLength={120}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -106,7 +130,7 @@ export default function NewProjectPage() {
               <div className="space-y-2">
                 <Label htmlFor="start_date">
                   {lang === "ar" ? "تاريخ البدء" : "Start Date"}
-                  <span className="text-red-500 ms-1">*</span>
+                  <span className="ms-1 text-red-500">*</span>
                 </Label>
                 <DateInput
                   id="start_date"
@@ -134,6 +158,7 @@ export default function NewProjectPage() {
               </Label>
               <Input
                 id="project_type"
+                maxLength={100}
                 value={projectType}
                 onChange={(e) => setProjectType(e.target.value)}
                 placeholder={
@@ -150,6 +175,7 @@ export default function NewProjectPage() {
               </Label>
               <Textarea
                 id="description"
+                maxLength={3000}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={
@@ -163,7 +189,7 @@ export default function NewProjectPage() {
           </CardContent>
         </Card>
 
-        <div className="mt-6 flex justify-end gap-4">
+        <div className="mt-6 flex flex-wrap justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => router.back()}>
             {lang === "ar" ? "إلغاء" : "Cancel"}
           </Button>

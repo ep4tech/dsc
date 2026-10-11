@@ -118,6 +118,8 @@ export default function SurveyBuilderPage({
     if (!isEditMode || !editId || isToolsLoading) return
     if (hasInitialized.current) return
 
+    // Initialize the editable draft once the asynchronous tool data is available.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true)
     const tool = getToolById(editId)
     if (tool && tool.config) {
@@ -259,9 +261,7 @@ export default function SurveyBuilderPage({
           </div>
           <Input
             placeholder={
-              lang === "ar"
-                ? "أدخل نص السؤال"
-                : "Enter question text"
+              lang === "ar" ? "أدخل نص السؤال" : "Enter question text"
             }
             value={question.text}
             onChange={(e) =>
@@ -359,13 +359,17 @@ export default function SurveyBuilderPage({
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{lang === "ar" ? "معلومات أساسية" : "Basic Info"}</CardTitle>
+              <CardTitle>
+                {lang === "ar" ? "معلومات أساسية" : "Basic Info"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>
-                    {lang === "ar" ? "اسم الاستبيان (إنجليزي)" : "Survey Name (EN)"}
+                    {lang === "ar"
+                      ? "اسم الاستبيان (إنجليزي)"
+                      : "Survey Name (EN)"}
                   </Label>
                   <Input
                     value={formData.nameEn}
@@ -379,7 +383,9 @@ export default function SurveyBuilderPage({
                 </div>
                 <div className="space-y-2">
                   <Label>
-                    {lang === "ar" ? "اسم الاستبيان (عربي)" : "Survey Name (AR)"}
+                    {lang === "ar"
+                      ? "اسم الاستبيان (عربي)"
+                      : "Survey Name (AR)"}
                   </Label>
                   <Input
                     value={formData.nameAr}
@@ -437,7 +443,9 @@ export default function SurveyBuilderPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>{lang === "ar" ? "نوع الإجابة" : "Answer Type"}</CardTitle>
+              <CardTitle>
+                {lang === "ar" ? "نوع الإجابة" : "Answer Type"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Select

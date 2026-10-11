@@ -4,9 +4,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Apply the supplied face only to Arabic glyphs, preserving Latin typography. */
+@font-face {
+  font-family: "Mohammad Bold Art";
+  src: url("/fonts/mohammad-bold-art-1.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-089F, U+08A0-08FF,
+    U+FB50-FDFF, U+FE70-FEFF, U+10E60-10E7F, U+1EE00-1EEFF;
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
+  --font-sans: "Mohammad Bold Art", var(--font-geist-sans), Arial, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -450,3 +461,51 @@ img[data-align] {
 .delay-800 { animation-delay: 800ms; }
 .delay-1000 { animation-delay: 1000ms; }
 .delay-1200 { animation-delay: 1200ms; }
+
+/* Keep long forms usable inside the mobile viewport, including its keyboard. */
+[data-slot="dialog-content"] {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dashboard-content,
+.dashboard-content > * {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  /* Sixteen-pixel controls avoid automatic zoom while typing on mobile Safari. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  .dashboard-content > * > .flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .dashboard-content button,
+  .dashboard-content [role="combobox"] {
+    min-height: 44px;
+  }
+}
+
+/* Visitor-selected readability preferences. */
+html[data-reading-size="large"] { font-size: 19px; }
+html[data-reading-size="larger"] { font-size: 22px; }
+html.reading-spacing :is(p, li, label, input, textarea, button, a) { line-height: 1.8 !important; word-spacing: .12em; }
+html.reading-contrast body { background: #fff !important; color: #000 !important; }
+html.reading-contrast :is(main, footer, header, nav, section, article, aside, div, span, dialog) { background-color: #fff !important; color: #000 !important; background-image: none !important; }
+html.reading-contrast :is(p, span, h1, h2, h3, h4, label, a, strong) { color: #000 !important; }
+html.reading-contrast :is(button, input, textarea, select) { background-color: #fff !important; color: #000 !important; border: 2px solid #000 !important; }
+html.reading-contrast a { text-decoration: underline; }
+html.reading-contrast svg { color: #000 !important; }
+html.reading-contrast :is(input, textarea, select) { accent-color: #000; }
+html.reading-contrast :is(input, textarea)::placeholder { color: #333 !important; opacity: 1; }
+html.reading-contrast :focus-visible { outline: 3px solid #000 !important; outline-offset: 3px !important; }
+html.reading-motion *, html.reading-motion *::before, html.reading-motion *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+html[data-reading-size="large"] :is(p, li, label, input, textarea, button, a),
+html[data-reading-size="larger"] :is(p, li, label, input, textarea, button, a) { font-size: max(1em, 1rem) !important; }

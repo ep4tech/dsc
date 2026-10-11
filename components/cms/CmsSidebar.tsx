@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSyncExternalStore } from "react"
-import { FileText, Home, Newspaper, PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { FileText, Home, Globe, Newspaper, PanelLeftClose, PanelLeftOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t } from "@/lib/i18n"
 import { useLang } from "@/lib/lang-context"
@@ -19,12 +19,17 @@ interface SidebarItem {
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
   {
-    label: { en: "Home Pages", ar: "صفحات رئيسية" },
+    label: { en: "Home page", ar: "الصفحة الرئيسية" },
     href: "/cms/home-pages",
     icon: <Home className="h-4 w-4" />,
   },
   {
-    label: { en: "Info Pages", ar: "صفحات المعلومات" },
+    label: { en: "Portals Info", ar: "معلومات البوابات" },
+    href: "/cms/portals",
+    icon: <Globe className="h-4 w-4" />,
+  },
+  {
+    label: { en: "Portals Items", ar: "عناصر البوابات" },
     href: "/cms/info",
     icon: <FileText className="h-4 w-4" />,
   },
@@ -77,7 +82,7 @@ export function CmsSidebar() {
   return (
     <aside
       className={cn(
-        "flex flex-col border-e bg-white transition-all duration-300",
+        "hidden shrink-0 flex-col border-e bg-white transition-all duration-300 md:flex",
         isCollapsed ? "w-16" : "w-64"
       )}
     >

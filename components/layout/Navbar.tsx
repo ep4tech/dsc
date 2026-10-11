@@ -3,12 +3,12 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Calendar, LayoutDashboard, LogIn, Menu, X, FileText, UserPlus, User, ChevronDown, LogOut } from "lucide-react"
+import { Calendar, LayoutDashboard, LogIn, Menu, X, FileText, UserPlus, ChevronDown, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { t } from "@/lib/i18n"
 import { useLang } from "@/lib/lang-context"
 import { useAuth } from "@/hooks/useAuth"
-import { getPortalById } from "@/lib/portals"
+import { usePortals } from "@/hooks/usePortals"
 import { SITE_CONTENT } from "@/lib/site-content"
 import Image from "next/image"
 import { BookConsultDialog } from "../BookConsultDialog"
@@ -16,21 +16,21 @@ import { BookConsultDialog } from "../BookConsultDialog"
 const NAV_LINKS = [
   { en: "Home", ar: "الرئيسية", href: "/" },
   { en: "About Us", ar: "من نحن", href: "/about-us" },
-  { en: "Team", ar: "فريقنا", href: "/team" },
   { en: "Blog", ar: "المدونة", href: "/blog" },
-  { en: "Training and Lectures", ar: "التدريب والمحاضرات", href: "/programmes" },
+  { en: "Events", ar: "الفعاليات", href: "/programmes" },
   { en: "Contact Us", ar: "اتصل بنا", href: "/contact-us" }
 ]
 
 export function Navbar() {
   const pathname = usePathname()
   const { lang, toggleLang } = useLang()
+  const { portals: PORTALS } = usePortals()
+  const getPortalById = (id: string) => PORTALS.find((portal) => portal.id === id)
   const { isAuthenticated, isAdmin, currentUser, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const router = useRouter()
   const accountRef = useRef<HTMLDivElement>(null)
 
-  const isHome = pathname === "/"
   const isPortal = pathname.startsWith("/portal/")
   const isAppRoute = pathname.startsWith("/dashboard") || pathname === "/login"
 
@@ -62,7 +62,7 @@ export function Navbar() {
     <div className="w-full">
       <div className="lg:mx-2">
         <header className="w-full">
-          <div className="grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 px-4 py-4 sm:px-6">
+          <div className="grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1 px-4 py-3 sm:px-6 sm:py-4 2xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
             {/* Left: Logo + Title */}
             <div className="col-start-1 flex min-w-0 items-center gap-2">
               <Link href="/" className="flex min-w-0 items-center gap-3">
@@ -92,7 +92,7 @@ export function Navbar() {
             {/* Center: Nav links (desktop) */}
             {!isAppRoute && (
               <nav
-                className="col-start-2 hidden flex-nowrap items-center gap-0 ltr:-translate-x-8 rtl:translate-x-22 md:flex"
+                className="col-start-2 hidden flex-nowrap items-center gap-0 ltr:-translate-x-8 rtl:translate-x-22 2xl:flex"
                 aria-label="Main navigation"
               >
                 {NAV_LINKS.map((item, i) => {
@@ -118,7 +118,7 @@ export function Navbar() {
             <div className="col-start-3 flex min-w-0 flex-nowrap items-center justify-end gap-2">
               <button
                 onClick={toggleLang}
-                className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-[#0a3d62]/5 hover:text-[#0076a3]"
+                className="min-h-11 shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-[#0a3d62]/5 hover:text-[#0076a3]"
               >
                 {t({ en: "العربية", ar: "English" }, lang)}
               </button>
@@ -127,14 +127,14 @@ export function Navbar() {
                 <>
                   <Link
                     href="/login"
-                    className="hidden items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:border-[#0a3d62]/30 hover:bg-[#0a3d62]/5 hover:text-[#0a3d62] md:flex"
+                    className="hidden items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:border-[#0a3d62]/30 hover:bg-[#0a3d62]/5 hover:text-[#0a3d62] 2xl:flex"
                   >
                     <LogIn className="h-3.5 w-3.5" />
                     {t({ en: "Login", ar: "تسجيل الدخول" }, lang)}
                   </Link>
                   <Link
                     href="/register"
-                    className="hidden items-center gap-1.5 rounded-full border border-gray-200 px-4 py-1 text-sm font-medium text-gray-700 transition-all hover:border-[#0a3d62]/30 hover:bg-[#0a3d62]/5 hover:text-[#0a3d62] md:flex"
+                    className="hidden items-center gap-1.5 rounded-full border border-gray-200 px-4 py-1 text-sm font-medium text-gray-700 transition-all hover:border-[#0a3d62]/30 hover:bg-[#0a3d62]/5 hover:text-[#0a3d62] 2xl:flex"
                   >
                     <UserPlus className="h-3.5 w-3.5" />
                     {t({ en: "Create Account", ar: "إنشاء حساب" }, lang)}
@@ -143,7 +143,7 @@ export function Navbar() {
               )}
 
               {isAuthenticated && (
-                <div className="relative hidden md:block" ref={accountRef}>
+                <div className="relative hidden 2xl:block" ref={accountRef}>
                   <button
                     onClick={() => setAccountPopoverOpen(!accountPopoverOpen)}
                     className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-gray-50"
@@ -197,7 +197,7 @@ export function Navbar() {
                 <Button
                   variant="default"
                   size="sm"
-                  className="hidden h-auto max-w-[9.5rem] shrink items-center gap-2 px-5 py-1 whitespace-normal rounded-full md:flex"
+                  className="hidden h-auto max-w-[9.5rem] shrink items-center gap-2 px-5 py-1 whitespace-normal rounded-full 2xl:flex"
                   onClick={() => setConsultOpen(true)}
                 >
                   <Calendar className="h-4 w-4 shrink-0" />
@@ -207,11 +207,13 @@ export function Navbar() {
                 </Button>
               )}
 
-              {!isAppRoute && (
+              {(
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="shrink-0 rounded-md p-1.5 text-gray-700 transition-colors hover:bg-gray-100 md:hidden"
-                  aria-label="Toggle menu"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-gray-700 transition-colors hover:bg-gray-100 2xl:hidden"
+                  aria-label={lang === "ar" ? "قائمة التنقل" : "Toggle menu"}
+                  aria-expanded={mobileMenuOpen}
+                  aria-controls="public-mobile-navigation"
                 >
                   {mobileMenuOpen ? (
                     <X className="h-5 w-5" />
@@ -227,8 +229,8 @@ export function Navbar() {
         </header>
 
         {/* Mobile menu (dropdown) */}
-        {!isAppRoute && mobileMenuOpen && (
-          <nav className="border-t border-gray-200 md:hidden">
+        {mobileMenuOpen && (
+          <nav id="public-mobile-navigation" aria-label={lang === "ar" ? "التنقل الرئيسي" : "Main navigation"} className="max-h-[75dvh] overflow-y-auto border-t border-gray-200 2xl:hidden">
             <div className="flex flex-col gap-1 px-4 py-3">
               {NAV_LINKS.map((item, i) => {
                 const isActive = pathname === item.href
@@ -236,7 +238,7 @@ export function Navbar() {
                   <Link
                     key={i}
                     href={item.href}
-                    className={`rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
+                    className={`flex min-h-11 items-center rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
                       isActive
                         ? "bg-[#0a3d62]/10 text-[#0a3d62]"
                         : "text-gray-600 hover:bg-[#0a3d62]/5"
@@ -255,7 +257,7 @@ export function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-[#0a3d62]/5 transition-colors"
+                    className="flex min-h-11 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-[#0a3d62]/5 transition-colors"
                   >
                     <LogIn className="h-4 w-4" />
                     {t({ en: "Login", ar: "تسجيل الدخول" }, lang)}
@@ -263,7 +265,7 @@ export function Navbar() {
                   <Link
                     href="/register"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-[#0a3d62]/5 transition-colors"
+                    className="flex min-h-11 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-[#0a3d62]/5 transition-colors"
                   >
                     <UserPlus className="h-4 w-4" />
                     {t({ en: "Create Account", ar: "إنشاء حساب" }, lang)}
@@ -287,7 +289,7 @@ export function Navbar() {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="gap-2 justify-start rounded-full"
+                  className="min-h-11 gap-2 justify-start rounded-full"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link href="/dashboard">
@@ -302,7 +304,7 @@ export function Navbar() {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="gap-2 justify-start rounded-full"
+                  className="min-h-11 gap-2 justify-start rounded-full"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Link href="/cms">
@@ -321,7 +323,7 @@ export function Navbar() {
                       logout()
                       router.push("/")
                     }}
-                    className="flex w-full items-center gap-2 rounded-full px-4 py-2.5 text-sm text-gray-600 hover:bg-[#0a3d62]/5 transition-colors text-left"
+                    className="flex min-h-11 w-full items-center gap-2 rounded-full px-4 py-2.5 text-sm text-gray-600 hover:bg-[#0a3d62]/5 transition-colors text-left"
                   >
                     <LogOut className="h-4 w-4" />
                     {t({ en: "Logout", ar: "تسجيل الخروج" }, lang)}
@@ -332,7 +334,7 @@ export function Navbar() {
               <Button
                 variant="default"
                 size="sm"
-                className="w-fit gap-2 justify-start rounded-full py-5"
+                className="min-h-11 w-fit gap-2 justify-start rounded-full py-5"
                 onClick={() => {
                   setMobileMenuOpen(false)
                   setConsultOpen(true)

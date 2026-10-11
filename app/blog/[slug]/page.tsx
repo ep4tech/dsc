@@ -1,3 +1,4 @@
+import { boundedFullList } from "@/lib/bounded-records"
 import Link from "next/link"
 import { cookies } from "next/headers"
 import { notFound } from "next/navigation"
@@ -24,10 +25,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   try {
     const [catRecords, record] = await Promise.all([
-      pb.collection("blog_categories").getFullList(),
+      boundedFullList(pb.collection("blog_categories")),
       pb
         .collection("blog_pages")
-        .getFirstListItem(`slug = "${slug}" && is_published = true`),
+        .getFirstListItem(pb.filter("slug = {:value0} && is_published = true", { value0: slug })),
     ])
     const catMap = new Map<string, BlogCategory>()
     for (const c of catRecords) {

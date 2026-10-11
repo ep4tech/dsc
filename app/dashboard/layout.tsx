@@ -18,7 +18,7 @@ export default function DashboardLayout({
   if (isAuthLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <PageLoader text="Authenticating..." />
+        <PageLoader text={lang === "ar" ? "جارٍ التحقق من الحساب..." : "Authenticating..."} />
       </div>
     )
   }
@@ -29,11 +29,11 @@ export default function DashboardLayout({
 
   return (
     <LoadingProvider>
-      <div className="flex min-h-screen" dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="flex min-h-screen min-w-0 flex-col md:flex-row" dir={lang === "ar" ? "rtl" : "ltr"}>
         <DashboardSidebar />
-        <main className="relative flex-1 bg-muted/30">
+        <main className="relative min-w-0 flex-1 bg-muted/30">
           <NavigationProgress />
-          <div className="p-6">{children}</div>
+          <div className="dashboard-content p-4 sm:p-6">{children}</div>
         </main>
       </div>
     </LoadingProvider>

@@ -1,0 +1,42 @@
+// Explicitly local integration test. Creates temporary records and removes them.
+import assert from 'node:assert/strict';
+import PocketBase from 'pocketbase';
+const pb=new PocketBase('http://127.0.0.1:8090');pb.autoCancellation(false);
+await pb.collection('users').authWithPassword('admin@dsc.local','LocalDSC!2026');
+const anon=new PocketBase(pb.baseURL);
+const created=[];const stamp=Date.now();
+const create=async(name,data)=>{const r=await pb.collection(name).create(data);created.push([name,r.id]);return r};
+const denied=async(fn)=>{let failed=false;try{await fn()}catch{failed=true}assert.ok(failed,'Operation must be denied')};
+try {
+ const experts=await pb.collection('users').getFullList({filter:'role="expert" && is_active=true'});const expert=experts[0];
+ const profile=await pb.collection('expert_profiles').getFirstListItem(`user="${expert.id}"`);
+ await pb.collection('expert_profiles').update(profile.id,{specialization_type:['educational_support'],country_of_residence:'Jordan',city:'Amman',highest_academic_degree:'doctorate_phd'});
+ const role=await create('roles_management',{role_name_en:`QA Role ${stamp}`,role_name_ar:'دور اختبار',tool_types:[]});
+ const owner=await create('users',{email:`org${stamp}@dsc.local`,password:'LocalDSC!2026',passwordConfirm:'LocalDSC!2026',name:'QA Organization',role:'organization',is_active:true});
+ const org=new PocketBase(pb.baseURL);await org.collection('users').authWithPassword(owner.email,'LocalDSC!2026');
+ const project=await org.collection('cases').create({user:owner.id,name:'QA Project',date_of_birth:'2026-10-10',status:'pending',service_type:'organization',case_details:{project_type:'Research'}});created.push(['cases',project.id]);
+ const edited=await org.collection('cases').update(project.id,{name:'Edited project',case_details:{project_type:'Training'}});assert.equal(edited.name,'Edited project');
+ await denied(()=>org.collection('cases').update(project.id,{is_paid:true}));
+ await denied(()=>org.collection('cases').update(project.id,{case_details:{end_date:'2026-02-30'}}));
+ await pb.send(`/api/dsc/cases/${project.id}/allocations`,{method:'POST',body:{rows:[{expert_id:expert.id,role:role.role_name_en}]}});
+ const allocation=await pb.collection('case_experts').getFirstListItem(`case_id="${project.id}"`);created.push(['case_experts',allocation.id]);
+ await denied(()=>pb.send(`/api/dsc/cases/${project.id}/allocations`,{method:'POST',body:{rows:[{id:allocation.id,expert_id:owner.id,role:role.role_name_en}]}}));
+ assert.equal((await pb.collection('case_experts').getOne(allocation.id)).expert_id,expert.id,'Invalid bulk request must preserve allocations');
+ const lookup=await pb.collection('lookups').getFirstListItem('type="tool_types"');
+ const task=await create('case_tools',{case:project.id,type:lookup.id,status:'assigned',name_en:'Learning assessment',assigned_expert:expert.id,specialization:'educational_support',task_brief:'Review learning needs and prepare assessment.',is_visible_to_user:true});
+ await denied(()=>pb.collection('case_tools').update(task.id,{specialization:'speech_and_language_services'}));
+ const self=new PocketBase(pb.baseURL);await self.collection('users').authWithPassword(expert.email,'LocalDSC!2026');
+ await self.collection('expert_profiles').update(profile.id,{city:'Amman'});await self.collection('case_tools').update(task.id,{responses:{note:'Complete'},status:'completed'});
+ await denied(()=>self.collection('case_tools').update(task.id,{assigned_expert:experts[1].id}));
+ assert.equal((await self.collection('cases').getOne(project.id)).id,project.id);
+ assert.equal((await anon.collection('expert_profiles').getFullList()).length,0);
+ assert.equal((await anon.collection('users').getFullList()).length,0);
+ const publicExpert=(await anon.collection('experts_public').getFullList())[0];assert.ok(publicExpert.name);for(const field of ['email','whatsapp_number','iban','bio','country_of_residence'])assert.ok(!(field in publicExpert));
+ assert.equal((await self.collection('expert_bank_details').getFullList()).length,0);
+ const form=new FormData();form.set('age_group',JSON.stringify(['4-6','7-12']));form.set('specialization_type',JSON.stringify(['educational_support','assessment_and_diagnosis']));
+ const changed=await self.collection('expert_profiles').update(profile.id,form);assert.deepEqual(changed.age_group,['4-6','7-12']);assert.equal(changed.specialization_type.length,2);
+ const email=`signup${stamp}@dsc.local`;const signup=await anon.collection('users').create({email,password:'LocalDSC!2026',passwordConfirm:'LocalDSC!2026',name:'QA Signup',role:'expert',is_active:false,expert_iban:'GB82WEST12345698765432'});created.push(['users',signup.id]);
+ const pending=new PocketBase(pb.baseURL);await pending.collection('users').authWithPassword(email,'LocalDSC!2026');const pendingProfile=await pending.collection('expert_profiles').create({user:signup.id,specialization_type:['educational_support']});created.push(['expert_profiles',pendingProfile.id]);
+ assert.equal((await pb.collection('expert_bank_details').getFirstListItem(`user="${signup.id}"`)).iban,'GB82WEST12345698765432');assert.equal((await pending.collection('expert_bank_details').getFullList()).length,0);
+ console.log('PASS: projects, owner restrictions, transactional allocations, specialization tasks, expert self-edit, private/public access, multi-value form fields and IBAN signup.');
+} finally {for(const [name,id] of created.reverse())try{await pb.collection(name).delete(id)}catch(error){console.error(`Cleanup failed for ${name}/${id}`, error);}}

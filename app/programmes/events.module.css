@@ -1,0 +1,827 @@
+.page {
+  --navy: #08205b;
+  --blue: #0060a1;
+  --muted: #57698c;
+  background: #f4f8fa;
+  color: var(--navy);
+  font-family: "Mohammad Bold Art", Arial, Tahoma, sans-serif;
+  min-height: 75vh;
+  padding-bottom: 44px;
+}
+.page[dir="rtl"] {
+  font-family: "Mohammad Bold Art", Tahoma, Arial, sans-serif;
+}
+.page button,
+.page select {
+  cursor: pointer;
+}
+.page button,
+.page input,
+.page select {
+  font: inherit;
+}
+.page a,
+.page button {
+  transition:
+    background 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
+}
+.page :focus-visible {
+  outline: 3px solid #44a9e1;
+  outline-offset: 3px;
+}
+.hero {
+  height: 164px;
+  background:
+    linear-gradient(90deg, rgba(8, 25, 37, 0.86), rgba(10, 26, 38, 0.12)),
+    url("/images/events/hero.jpg") center 55% / cover;
+  color: #fff;
+}
+.hero > div {
+  max-width: 1160px;
+  margin: auto;
+  padding: 39px 0;
+}
+.hero h1 {
+  font-size: 46px;
+  line-height: 1.1;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+.hero p {
+  font-size: 20px;
+  margin: 0;
+}
+.layout {
+  max-width: 1310px;
+  margin: 0 auto;
+  padding-top: 15px;
+  display: grid;
+  grid-template-columns: minmax(0, 900fr) minmax(300px, 400fr);
+  gap: 14px;
+  align-items: start;
+}
+.main,
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-width: 0;
+}
+.panel {
+  background: #fff;
+  border: 1px solid #edf1f6;
+  border-radius: 11px;
+  box-shadow: 0 2px 8px #1a3c6010;
+  padding: 15px;
+}
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+.sectionHeader h2,
+.calendar h2 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+}
+.sectionHeader h2 svg {
+  color: #9d08b4;
+  width: 29px;
+  height: 29px;
+  flex: none;
+}
+.sectionHeader a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0060a9;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.sectionHeader a:hover {
+  text-decoration: underline;
+}
+.sectionHeader a svg {
+  width: 15px;
+  height: 15px;
+}
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
+}
+.lectureList {
+  display: grid;
+  gap: 14px;
+}
+.card {
+  min-width: 0;
+  border: 1px solid #e6edf6;
+  border-radius: 11px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px #19366708;
+}
+.photo {
+  height: 117px;
+  position: relative;
+  overflow: hidden;
+  background: #dde8ed;
+}
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.badges {
+  position: absolute;
+  top: 7px;
+  inset-inline-end: 8px;
+  display: flex;
+  gap: 6px;
+}
+.badges span {
+  font-size: 12px;
+  padding: 3px 11px;
+  border-radius: 15px;
+  background: #f5f6f7;
+  color: #38414d;
+  font-weight: 600;
+  line-height: 1.2;
+  box-shadow: 0 1px 3px #0001;
+}
+.badges .mode {
+  background: #d8efff;
+  color: #075495;
+}
+.badges .online {
+  background: #d4ffdf;
+  color: #146534;
+}
+.cardBody {
+  padding: 9px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 117px);
+}
+.card h3 {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 700;
+  margin: 0 0 3px;
+}
+.presenter {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.metadata {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 9px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 11px;
+}
+.metadata span {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.metadata svg {
+  height: 15px;
+  width: 15px;
+  flex: none;
+}
+.details {
+  border: 1px solid #388ac6;
+  color: #00599c;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 32px;
+  padding: 5px 14px;
+  margin-top: auto;
+  background: #fff;
+}
+.details svg {
+  width: 16px;
+  height: 16px;
+}
+.details:hover {
+  background: #edf7ff;
+  box-shadow: 0 2px 6px #0060a119;
+}
+.lecture {
+  display: grid;
+  grid-template-columns: 38% 1fr;
+  padding: 9px;
+  gap: 23px;
+}
+.lecture .photo {
+  height: 177px;
+  border-radius: 9px;
+}
+.lecture .cardBody {
+  height: auto;
+  padding: 5px 7px 5px 0;
+}
+.lecture h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+.lecture .presenter {
+  margin-bottom: 17px;
+}
+.lecture .metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
+.lecture .description {
+  font-size: 12px;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 7px 0 15px;
+}
+.lecture .details {
+  align-self: flex-start;
+  min-width: 167px;
+}
+.calendar {
+  padding: 14px 11px 12px;
+}
+.calendar h2 {
+  font-size: 18px;
+  gap: 13px;
+  padding: 0 5px;
+}
+.calendar h2 svg {
+  width: 24px;
+  color: #0079bc;
+}
+.monthNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 14px 8px;
+  font-size: 14px;
+}
+.monthNav button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 32px;
+  border: 1px solid #cbdeed;
+  border-radius: 10px;
+  background: white;
+  color: #006eb2;
+}
+.monthNav svg {
+  width: 18px;
+}
+.monthNav button:hover {
+  background: #eff7fc;
+}
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.weekday {
+  font-size: 11px;
+  text-align: center;
+  padding: 9px 0;
+  background: #f3f5f8;
+}
+.weekday:first-child {
+  border-radius: 9px 0 0 9px;
+}
+.weekday:nth-child(7) {
+  border-radius: 0 9px 9px 0;
+}
+.day {
+  height: 36px;
+  border: 0;
+  border-inline-end: 1px solid #f4f6f8;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+  font-size: 12px !important;
+  color: #14264c;
+}
+.day:hover {
+  background: #edf7fd;
+}
+.day.outside {
+  color: #768498;
+  background: #fafbfc;
+}
+.day.today > span:first-child {
+  outline: 1px solid #8ebcda;
+  border-radius: 50%;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+}
+.day.selected {
+  background: #005d99;
+  color: white;
+  border-radius: 50%;
+  width: 38px;
+  justify-self: center;
+}
+.dots {
+  display: flex;
+  gap: 3px;
+  position: absolute;
+  bottom: 2px;
+}
+.dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6945da;
+}
+.dots i + i {
+  background: #0093c8;
+}
+.selected .dots i {
+  background: #dcadff;
+}
+.searchPanel,
+.filters {
+  padding: 12px 15px;
+}
+.searchPanel h2,
+.filters h2 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e1eaf4;
+  border-radius: 9px;
+  overflow: hidden;
+}
+.search > svg {
+  width: 17px;
+  height: 17px;
+  margin-inline-start: 12px;
+  flex: none;
+  color: var(--muted);
+}
+.search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 11px;
+  padding: 9px 0;
+  color: var(--navy);
+}
+.search input::placeholder {
+  color: #5c6d8b;
+}
+.search button {
+  height: 33px;
+  width: 39px;
+  background: #005786;
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.search button svg {
+  width: 17px;
+}
+.filters h2 {
+  margin-bottom: 6px;
+}
+.filter {
+  border-top: 1px solid #e7eef5;
+}
+.filter summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  min-height: 30px;
+  cursor: pointer;
+  padding: 4px 7px;
+}
+.filter summary::-webkit-details-marker {
+  display: none;
+}
+.filter summary > svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  color: #486294;
+}
+.filter summary > svg:last-child {
+  margin-inline-start: auto;
+  width: 13px;
+  height: 13px;
+  transform: rotate(90deg);
+  color: #052b69;
+}
+.filter[open] summary > svg:last-child {
+  transform: rotate(-90deg);
+}
+.filter small {
+  color: #006ca8;
+  font-size: 11px;
+}
+.filterInput {
+  display: block;
+  padding: 4px 6px 12px;
+}
+.filter select,
+.dateInputs input {
+  border: 1px solid #cbdbe8;
+  border-radius: 6px;
+  background: #fff;
+  padding: 8px;
+  color: #304b72;
+  width: 100%;
+  min-width: 0;
+  font-size: 12px;
+}
+.dateInputs {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px 6px 12px;
+  font-size: 12px;
+}
+.dateInputs label {
+  min-width: 0;
+}
+.dateInputs input {
+  margin-top: 5px;
+}
+.clearDay,
+.results button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #00639d;
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  padding: 9px 4px;
+}
+.clearDay svg,
+.results svg {
+  width: 14px;
+  height: 14px;
+}
+.results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 0 4px;
+}
+.empty {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 30px 12px;
+}
+.empty h2 {
+  font-size: 20px;
+  color: var(--navy);
+  margin-bottom: 7px;
+}
+.empty .details {
+  margin: 15px auto 0;
+  width: max-content;
+}
+.loading {
+  min-height: 250px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.page[dir="rtl"] .hero {
+  background-image:
+    linear-gradient(270deg, rgba(8, 25, 37, 0.86), rgba(10, 26, 38, 0.12)),
+    url("/images/events/hero.jpg");
+}
+.page[dir="rtl"] .details svg,
+.page[dir="rtl"] .sectionHeader a svg {
+  transform: scaleX(-1);
+}
+@media (min-width: 1500px) {
+  .layout {
+    margin-inline: auto;
+  }
+  .hero > div {
+    max-width: 1160px;
+  }
+}
+@media (max-width: 1380px) {
+  .layout {
+    margin-inline: 24px;
+  }
+  .hero > div {
+    padding-inline: 6%;
+  }
+  .cardGrid {
+    gap: 15px;
+  }
+  .metadata {
+    grid-template-columns: 1fr;
+  }
+  .lecture .metadata {
+    gap: 10px;
+  }
+  .lecture {
+    gap: 15px;
+  }
+  .cardBody {
+    height: calc(100% - 117px);
+  }
+}
+@media (max-width: 1050px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    margin-inline: 16px;
+  }
+  .sectionHeader h2 {
+    font-size: 18px;
+    gap: 9px;
+  }
+  .sectionHeader a {
+    font-size: 11px;
+  }
+  .lecture {
+    grid-template-columns: 1fr;
+  }
+  .lecture .photo {
+    height: 175px;
+  }
+  .lecture .cardBody {
+    padding: 5px;
+  }
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+  .card .photo {
+    height: 185px;
+  }
+  .cardBody {
+    height: auto;
+  }
+  .metadata {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sectionHeader {
+    flex-wrap: wrap;
+  }
+  .lecture .details {
+    margin-top: 8px;
+  }
+  .hero h1 {
+    font-size: 39px;
+  }
+}
+@media (max-width: 720px) {
+  .hero {
+    height: 150px;
+  }
+  .hero > div {
+    padding: 31px 22px;
+  }
+  .hero h1 {
+    font-size: 36px;
+  }
+  .hero p {
+    font-size: 17px;
+  }
+  .layout {
+    display: flex;
+    flex-direction: column;
+    margin-inline: 12px;
+    gap: 15px;
+  }
+  .main,
+  .sidebar {
+    width: 100%;
+  }
+  .sidebar {
+    order: -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .calendar {
+    grid-row: span 2;
+  }
+  .calendar h2 {
+    font-size: 15px;
+    gap: 7px;
+  }
+  .calendar h2 svg {
+    width: 20px;
+  }
+  .monthNav {
+    margin: 12px 0 7px;
+    font-size: 12px;
+  }
+  .monthNav button {
+    width: 28px;
+    height: 28px;
+  }
+  .day {
+    height: 32px;
+  }
+  .weekday {
+    font-size: 9px;
+  }
+  .day.selected {
+    width: 30px;
+  }
+  .panel {
+    padding: 12px;
+  }
+  .filters {
+    align-self: start;
+  }
+  .filter summary {
+    gap: 7px;
+    min-height: 34px;
+    padding-inline: 0;
+    font-size: 11px;
+  }
+  .searchPanel h2,
+  .filters h2 {
+    font-size: 13px;
+  }
+  .search {
+    gap: 5px;
+  }
+  .search > svg {
+    display: none;
+  }
+  .search input {
+    padding-inline-start: 7px;
+    font-size: 11px;
+  }
+  .search button {
+    width: 30px;
+  }
+  .searchPanel {
+    padding: 10px;
+  }
+  .sectionHeader h2 {
+    font-size: 19px;
+  }
+  .sectionHeader a {
+    font-size: 12px;
+  }
+  .lecture {
+    grid-template-columns: 1fr;
+  }
+  .lecture .photo {
+    height: 210px;
+  }
+  .cardGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .metadata {
+    grid-template-columns: 1fr;
+  }
+  .card h3 {
+    font-size: 15px;
+  }
+  .card .photo {
+    height: 145px;
+  }
+  .cardBody {
+    height: calc(100% - 145px);
+  }
+  .lecture .photo {
+    height: 210px;
+  }
+  .lecture .cardBody {
+    height: auto;
+  }
+  .dateInputs {
+    grid-template-columns: 1fr;
+  }
+  .day.today > span:first-child {
+    height: 27px;
+    width: 27px;
+  }
+}
+@media (max-width: 440px) {
+  .sectionHeader {
+    flex-wrap: wrap;
+  }
+  .page input,
+  .page select {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .filterToggle,
+  .searchPanel button {
+    min-height: 44px;
+  }
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+  }
+  .calendar {
+    order: 2;
+  }
+  .filters {
+    width: 100%;
+    order: 3;
+  }
+  .searchPanel {
+    order: 1;
+  }
+  .calendarGrid .day {
+    height: 38px;
+  }
+  .calendar h2 {
+    font-size: 18px;
+  }
+  .monthNav {
+    margin-inline: 10px;
+    font-size: 14px;
+  }
+  .weekday {
+    font-size: 11px;
+  }
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+  .card .photo {
+    height: 175px;
+  }
+  .cardBody {
+    height: auto;
+  }
+  .metadata {
+    grid-template-columns: 1fr 1fr;
+  }
+  .lecture .metadata {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .sectionHeader h2 {
+    font-size: 18px;
+  }
+  .sectionHeader h2 svg {
+    width: 24px;
+  }
+  .sectionHeader {
+    gap: 8px;
+  }
+  .hero {
+    height: 140px;
+  }
+}

@@ -56,7 +56,7 @@ export default function AdminDashboardPage() {
   const primaryStats: Stat[] = [
     {
       title: lang === "ar" ? "المستخدمون" : "Users",
-      value: users.length,
+      value: users.filter((user) => user.role !== "expert").length,
       icon: Users,
       isLoading: isUsersLoading,
     },

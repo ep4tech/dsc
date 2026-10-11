@@ -1,47 +1,31 @@
-const botToken = process.env.BOT_TOKEN
-const ADMIN_CHAT_ID = "-1003957107896"
-
+import {
+  guardMessaging,
+  messagingUser,
+  readMessagingBody,
+  messageString,
+  messagingError,
+  localMessagingDisabled,
+} from "@/lib/messaging-security"
 export async function POST(request: Request) {
   try {
-    const { text } = await request.json()
-
-    if (!text) {
-      return Response.json(
-        { error: "Missing required field: text" },
-        { status: 400 }
-      )
-    }
-
+    guardMessaging(request)
+    await messagingUser(request)
+    const text = messageString(await readMessagingBody(request), "text", 4000)
+    if (localMessagingDisabled())
+      return Response.json({ message: "Sent successfully" })
     const response = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendMessage`,
+      `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: ADMIN_CHAT_ID,
-          text,
-          parse_mode: "Markdown",
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: "-1003957107896", text }),
+        signal: AbortSignal.timeout(10_000),
       }
     )
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      return Response.json(
-        {
-          error: "Telegram API error",
-          telegram: data,
-        },
-        { status: response.status }
-      )
-    }
-
+    if (!response.ok || !(await response.json()).ok)
+      throw new Error("Delivery failed")
     return Response.json({ message: "Sent successfully" })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error"
-    return Response.json({ error: message }, { status: 500 })
+    return messagingError(error)
   }
 }

@@ -56,11 +56,17 @@ const ANSWER_TYPES: {
   { value: "number", label: { en: "Number", ar: "رقم" } },
   {
     value: "single_choice",
-    label: { en: "Single Choice (mark correct)", ar: "اختيار واحد (حدد الصحيح)" },
+    label: {
+      en: "Single Choice (mark correct)",
+      ar: "اختيار واحد (حدد الصحيح)",
+    },
   },
   {
     value: "multiple_choice",
-    label: { en: "Multiple Choice (mark correct)", ar: "اختيار من متعدد (حدد الصحيح)" },
+    label: {
+      en: "Multiple Choice (mark correct)",
+      ar: "اختيار من متعدد (حدد الصحيح)",
+    },
   },
   {
     value: "media",
@@ -120,6 +126,8 @@ export default function MultipleChoiceBuilderPage({
   // Load existing data in edit mode
   useEffect(() => {
     if (isEditMode && editId && !isToolsLoading) {
+      // Initialize the editable draft once the asynchronous tool data is available.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(true)
       const tool = getToolById(editId)
       if (tool && tool.config) {
@@ -615,18 +623,24 @@ export default function MultipleChoiceBuilderPage({
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{lang === "ar" ? "معلومات أساسية" : "Basic Info"}</CardTitle>
+              <CardTitle>
+                {lang === "ar" ? "معلومات أساسية" : "Basic Info"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>{lang === "ar" ? "الاسم (إنجليزي)" : "Name (EN)"}</Label>
+                  <Label>
+                    {lang === "ar" ? "الاسم (إنجليزي)" : "Name (EN)"}
+                  </Label>
                   <Input
                     value={formData.nameEn}
                     onChange={(e) =>
                       setFormData({ ...formData, nameEn: e.target.value })
                     }
-                    placeholder={lang === "ar" ? "عنوان الاختبار" : "Quiz title"}
+                    placeholder={
+                      lang === "ar" ? "عنوان الاختبار" : "Quiz title"
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -696,9 +710,7 @@ export default function MultipleChoiceBuilderPage({
             <CardContent>
               {questions.length === 0 ? (
                 <p className="py-4 text-center text-muted-foreground">
-                  {lang === "ar"
-                    ? "لا توجد أسئلة بعد."
-                    : "No questions yet."}
+                  {lang === "ar" ? "لا توجد أسئلة بعد." : "No questions yet."}
                 </p>
               ) : (
                 <DragList

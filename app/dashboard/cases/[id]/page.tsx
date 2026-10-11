@@ -1,4 +1,5 @@
 "use client"
+import { CaseFeedback } from "@/components/cases/CaseFeedback"
 
 import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -475,6 +476,7 @@ export default function ProfileDetailPage({
           </Card>
         </TabsContent>
       </Tabs>
+          <CaseFeedback caseId={profile.id} ownerId={profile.user} />
     </div>
     </PaymentGate>
   )

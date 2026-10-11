@@ -1,4 +1,10 @@
 import type { BilingualString, Lang } from "@/types/form"
+import { COUNTRY_CODES } from "./country-codes"
+
+export function countryLabel(value: string, lang: Lang): string {
+  const country = COUNTRY_CODES.find(c => c.value === value || c.label.en === value || c.label.ar === value)
+  return country?.label[lang] || value
+}
 
 export interface ExpertOption {
   value: string
